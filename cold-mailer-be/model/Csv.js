@@ -12,7 +12,10 @@ const csvUploadSchema = new mongoose.Schema({
     email: { type: String, required: true },
   },
   totalRecords: { type: Number, default: 0 },
+  startIndex: { type: Number, default: 0 },
+  endIndex: { type: Number, default: 0 },
   sent: { type: Number, default: 0 },
+  failedEmails: { type: [String], default: [] },
   uploadedAt: { type: Date, default: Date.now },
 });
 
