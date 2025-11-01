@@ -1,6 +1,9 @@
 import express from "express";
 import connectDB from "./model/db.js";
 import routes from "./routes/index.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 const server = express();
 const port = 3000;
 server.use(express.json());
