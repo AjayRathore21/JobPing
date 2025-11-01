@@ -1,5 +1,6 @@
 import cloudinary from "../configs/cloudinary.js";
 import CsvUpload from "../model/Csv.js";
+import User from "../model/User.js";
 import fs from "fs";
 
 export const csvUpload = async (req, res) => {
@@ -15,19 +16,28 @@ export const csvUpload = async (req, res) => {
 
     // Remove local file
     fs.unlinkSync(filePath);
-
-    //
-
     const csvObj = new CsvUpload({
       fileName: req.file.originalname,
       fileUrl: result.secure_url,
       uploadedBy: {
-        userId: "6905eeab98fcf0ec0c3530b8", // default values for now
-        email: "testing@gmail.com",
+        userId: "6905eeab98fcf0ec0c3530b8", //! default values for now. this id will get from the request after auth implementation
+        email: "testing@gmail.com", //! thi too
       },
       totalRecords: 0,
       sent: 0,
     });
+
+    const user = await User.findByIdAndUpdate(
+      "6905eeab98fcf0ec0c3530b8",
+      {
+        $push: { uploadedFiles: csvObj._id },
+      },
+      {
+        new: true, // The function will return the updated document after the update is applied.
+      }
+    );
+
+    console.log("Updated User after file upload:@@@", user);
 
     const savedObj = await csvObj.save();
     res.json({

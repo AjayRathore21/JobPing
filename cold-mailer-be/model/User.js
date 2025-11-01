@@ -52,6 +52,9 @@ const userSchema = new mongoose.Schema(
 
     // For verification
     verified: { type: Boolean, default: false },
+
+    // Store uploaded CSV file references
+    uploadedFiles: [{ type: mongoose.Schema.Types.ObjectId, ref: "Csv" }],
   },
   { timestamps: true }
 );

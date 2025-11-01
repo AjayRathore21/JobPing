@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
 const csvUploadSchema = new mongoose.Schema({
-  fileName: { type: String, required: true },
-  fileUrl: { type: String, required: true },
+  name: { type: String, required: true },
+  url: { type: String, required: true },
   uploadedBy: {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
