@@ -17,7 +17,7 @@ const configNodemailer = (email, pass) => {
 
 const sendEmail = async (req, res) => {
   try {
-    const { email, pass } = req.body;
+    const { email, pass } = req.body || {};
 
     console.log(
       "Send Email Request Body:@@@",
@@ -41,7 +41,9 @@ const sendEmail = async (req, res) => {
 
     const uploadedFiles = user.uploadedFiles;
 
-    const csv = uploadedFiles[0]; // Assuming we want to load the first uploaded CSV file
+    const csv = uploadedFiles[1]; // Assuming we want to load the first uploaded CSV file
+
+    console.log("CSV File to be used for sending emails:@@@", csv);
 
     const csvData = await loadCsvFromCloudinary(csv.url);
 

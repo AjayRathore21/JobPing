@@ -14,11 +14,12 @@ export const csvUpload = async (req, res) => {
       folder: "csv_files",
     });
 
+    console.log("Cloudinary upload result:@@@@", result);
     // Remove local file
     fs.unlinkSync(filePath);
     const csvObj = new CsvUpload({
-      fileName: req.file.originalname,
-      fileUrl: result.secure_url,
+      name: req.file.originalname,
+      url: result.secure_url,
       uploadedBy: {
         userId: "6905eeab98fcf0ec0c3530b8", //! default values for now. this id will get from the request after auth implementation
         email: "testing@gmail.com", //! thi too
@@ -26,6 +27,8 @@ export const csvUpload = async (req, res) => {
       totalRecords: 0,
       sent: 0,
     });
+
+    const savedObj = await csvObj.save();
 
     const user = await User.findByIdAndUpdate(
       "6905eeab98fcf0ec0c3530b8",
@@ -39,7 +42,6 @@ export const csvUpload = async (req, res) => {
 
     console.log("Updated User after file upload:@@@", user);
 
-    const savedObj = await csvObj.save();
     res.json({
       message: "File uploaded successfully",
       data: savedObj,
