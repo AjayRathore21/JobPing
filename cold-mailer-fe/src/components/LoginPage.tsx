@@ -2,9 +2,11 @@ import { Form, Input, Button, Typography, message } from "antd";
 import { Link, useNavigate } from "react-router";
 import axios from "../configs/axiosConfig";
 import "./authForm.scss";
+import { selectSetUser, useUserStore } from "../store/userStore";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const setUser = useUserStore(selectSetUser);
   const onFinish = async (values: Record<string, string>) => {
     try {
       const payload = {
@@ -13,6 +15,8 @@ const LoginPage = () => {
       };
       const response = await axios.post("/auth/login", payload);
       console.log("Login success:", response.data);
+      // Store user information in Zustand
+      setUser(response.data.user);
 
       message.success("Login successful!");
 
