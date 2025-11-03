@@ -1,12 +1,32 @@
-import React from "react";
-import { Form, Input, Button, Typography } from "antd";
-import { Link } from "react-router";
+import { Form, Input, Button, Typography, message } from "antd";
+import { Link, useNavigate } from "react-router";
+import axios from "../configs/axiosConfig";
 import "./authForm.scss";
 
-const LoginPage: React.FC = () => {
-  const onFinish = (values: any) => {
-    // Handle login logic here
-    console.log("Login values:", values);
+const LoginPage = () => {
+  const navigate = useNavigate();
+  const onFinish = async (values: Record<string, string>) => {
+    try {
+      const payload = {
+        email: String(values.email),
+        password: String(values.password),
+      };
+      const response = await axios.post("/auth/login", payload);
+      console.log("Login success:", response.data);
+
+      message.success("Login successful!");
+
+      setTimeout(() => {
+        navigate(
+          "/dashboard" // Replace with the actual route you want to navigate to after login
+        );
+      }, 1000);
+      // Optionally handle login success (e.g., redirect, store token)
+    } catch (error: unknown) {
+      console.error("Login error:", error);
+
+      // Optionally show error message
+    }
   };
 
   return (

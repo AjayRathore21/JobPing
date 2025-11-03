@@ -1,12 +1,33 @@
-import React from "react";
-import { Form, Input, Button, Typography } from "antd";
-import { Link } from "react-router";
+import { Form, Input, Button, Typography, message } from "antd";
+import { Link, useNavigate } from "react-router";
+import axios from "../configs/axiosConfig";
 import "./authForm.scss";
 
-const SignupPage: React.FC = () => {
-  const onFinish = (values: any) => {
-    // Handle signup logic here
-    console.log("Signup values:", values);
+const SignupPage = () => {
+  const navigate = useNavigate();
+  const onFinish = async (values: any) => {
+
+    console.log("Signup form values:", values);
+    try {
+      // Ensure all values are strings
+      const payload = {
+        name: String(values.name),
+        email: String(values.email),
+        password: String(values.password),
+      };
+      const response = await axios.post("/auth/signup", payload);
+      console.log("Signup success:", response.data);
+      // Optionally show success message or redirect
+      message.success("Signup successful! Please login.");
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 1000);
+    } catch (error: any) {
+      console.error("Signup error:", error?.response?.data || error.message);
+      // Optionally show error message
+      message.error("Signup failed. Please try again.");
+    }
   };
 
   return (

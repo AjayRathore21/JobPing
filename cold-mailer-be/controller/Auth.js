@@ -1,31 +1,28 @@
+import bcrypt from "bcrypt";
 import User from "../model/User.js";
+import logger from "../utils/logger.js";
 
 export const login = async (req, res) => {
-  console.log("this is req obj");
-
   try {
-    console.log("Login Request Body:", req.body);
     const { email, password } = req.body;
-
-    // 1️⃣ Validate input
     if (!email || !password) {
       return res
         .status(400)
         .json({ message: "email and password are required." });
     }
-
-    // 2️⃣ Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password." });
     }
-
-    return res
-      .status(200)
-      .json({
-        message: "Login successful.",
-        user: { id: user._id, email: user.email },
-      });
+    // Compare entered password with hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password." });
+    }
+    return res.status(200).json({
+      message: "Login successful.",
+      user: user,
+    });
   } catch (error) {
     console.error("Login Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -40,38 +37,30 @@ export const login = async (req, res) => {
 export const signupUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
-
     console.log("Signup Request Body:@@@@", req.body);
-
-    // 1️⃣ Validate input
     if (!email || !password) {
+      logger.warn("Signup attempt with missing email or password");
       return res
         .status(400)
         .json({ message: "email and password are required." });
     }
-
-    // 2️⃣ Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      logger.info(`Signup attempt with existing email: ${email}`);
       return res.status(400).json({ message: "User already exists." });
     }
-
-    // 3️⃣ Create new user instance
-    const newUser = new User({ email, password, name });
-
-    // 4️⃣ Save to DB (password hashed automatically in model)
+    // Hash password before saving
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const newUser = new User({ email, password: hashedPassword, name });
     await newUser.save();
-
-    // 5️⃣ Return success response
+    logger.info(`New user registered: ${newUser}`);
     return res.status(201).json({
       message: "User registered successfully.",
-      user: {
-        id: newUser._id,
-        email: newUser.email,
-      },
+      user: newUser,
     });
   } catch (error) {
-    console.error("Signup Error:", error);
+    logger.error("Signup Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
