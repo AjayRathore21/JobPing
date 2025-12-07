@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { Button, Space } from "antd";
 import PreviewCsv from "./PreviewCsv";
 import { setTokenToLS } from "../HelperMethods";
-import axios from "axios";
+import axios from "../configs/axiosConfig";
 
 const DashboardPage = () => {
   const user = useUserStore((state) => state.user);
@@ -20,15 +20,28 @@ const DashboardPage = () => {
   };
 
   const handleUpload = () => {
-    console.log("Upload button clicked"); 
+    const file = fileInputRef.current?.files?.[0];
 
-    console.log("File input ref:", fileInputRef.current);
+    if (!file) {
+      console.error("No file selected");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("csv", file); // "csv" matches multer's upload.single("csv")
+
     axios
-      .post("/upload/csv", {
-        file: fileInputRef.current?.files?.[0],
+      .post("/upload/csv", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       })
       .then((res) => {
         console.log("Upload response:", res.data);
+        // Clear the file input after successful upload
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       })
       .catch((err) => {
         console.error("Upload error:", err);

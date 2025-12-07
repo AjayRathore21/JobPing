@@ -1,13 +1,22 @@
 import { Form, Input, Button, Typography, message } from "antd";
-import { Link, useNavigate } from "react-router";
+import { Link, Navigate, useNavigate } from "react-router";
 import axios from "../configs/axiosConfig";
+import { AxiosError } from "axios";
 import "./authForm.scss";
 import { selectSetUser, useUserStore } from "../store/userStore";
 import { setTokenToLS } from "../HelperMethods";
+import AuthCheck from "../hooks/Authcheck";
 
 const LoginPage = () => {
+  const isAuthenticated = AuthCheck();
   const navigate = useNavigate();
   const setUser = useUserStore(selectSetUser);
+
+  // Redirect to dashboard if already logged in
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const onFinish = async (values: Record<string, string>) => {
     try {
       const payload = {
@@ -28,10 +37,11 @@ const LoginPage = () => {
         );
       }, 1000);
       // Optionally handle login success (e.g., redirect, store token)
-    } catch (error: unknown) {
-      console.error("Login error:", error);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      console.error("Login error:", axiosError.response?.data?.message);
 
-      // Optionally show error message
+      message.error(axiosError.response?.data?.message || "An error occurred");
     }
   };
 

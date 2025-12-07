@@ -1,13 +1,11 @@
+import "dotenv/config"; // Must be first - loads env vars before other imports
 import express from "express";
 import connectDB from "./model/db.js";
 import routes from "./routes/index.js";
-import dotenv from "dotenv";
 import cors from "cors";
 import passport from "passport";
 import cookieParser from "cookie-parser";
 import configurePassport from "./configs/passportConfig.js";
-
-dotenv.config();
 const server = express();
 const port = 3000;
 server.use(express.json());

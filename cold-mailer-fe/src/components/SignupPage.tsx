@@ -1,12 +1,19 @@
 import { Form, Input, Button, Typography, message } from "antd";
-import { Link, useNavigate } from "react-router";
+import { Link, Navigate, useNavigate } from "react-router";
 import axios from "../configs/axiosConfig";
 import "./authForm.scss";
+import AuthCheck from "../hooks/Authcheck";
 
 const SignupPage = () => {
+  const isAuthenticated = AuthCheck();
   const navigate = useNavigate();
-  const onFinish = async (values: any) => {
 
+  // Redirect to dashboard if already logged in
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  const onFinish = async (values: any) => {
     console.log("Signup form values:", values);
     try {
       // Ensure all values are strings

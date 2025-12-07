@@ -5,25 +5,27 @@ import fs from "fs";
 
 export const csvUpload = async (req, res) => {
   try {
-    console.log("Uploading file:@@@@", req.file);
+    console.log("Uploading file:@@@@", req.file, req.user);
     const filePath = req?.file?.path;
+    const user = req.user;
 
-    console.log("this is the payload==>", req.body);
+    console.log("User:@@@@", user);
+
     // Upload to Cloudinary
     const result = await cloudinary.uploader.upload(filePath, {
       resource_type: "raw", // 👈 important for CSV or non-image files
       folder: "csv_files",
     });
 
-    console.log("Cloudinary upload result:@@@@", result);
+    console.log("Cloudinary upload result:@@@@", result, user);
     // Remove local file
     fs.unlinkSync(filePath);
     const csvObj = new CsvUpload({
       name: req.file.originalname,
       url: result.secure_url,
       uploadedBy: {
-        userId: "6905eeab98fcf0ec0c3530b8", //! default values for now. this id will get from the request after auth implementation
-        email: "testing@gmail.com", //! thi too
+        userId: user._id,
+        email: user.email,
       },
       totalRecords: 0,
       sent: 0,
@@ -31,17 +33,11 @@ export const csvUpload = async (req, res) => {
 
     const savedObj = await csvObj.save();
 
-    const user = await User.findByIdAndUpdate(
-      "6905eeab98fcf0ec0c3530b8",
-      {
-        $push: { uploadedFiles: csvObj._id },
-      },
-      {
-        new: true, // The function will return the updated document after the update is applied.
-      }
-    );
+    const updatedUser = await User.findByIdAndUpdate(user._id, {
+      $push: { uploadedFiles: csvObj._id },
+    });
 
-    console.log("Updated User after file upload:@@@", user);
+    console.log("Updated User after file upload:@@@", updatedUser);
 
     res.json({
       message: "File uploaded successfully",
