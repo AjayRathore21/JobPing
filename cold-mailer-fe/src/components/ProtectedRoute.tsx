@@ -1,19 +1,14 @@
-import React from "react";
-import { Navigate } from "react-router";
-import { selectUser, useUserStore } from "../store/userStore";
+import { Navigate, Outlet } from "react-router";
+import AuthCheck from "../hooks/Authcheck";
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
+const ProtectedRoute = () => {
+  const isAuthenticated = AuthCheck();
 
-const ProtectedRoute = (props: ProtectedRouteProps) => {
-  const { children } = props;
-  const user = useUserStore(selectUser);
-  console.log("ProtectedRoute - user:", user);
-  if (!user) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  return <>{children}</>;
+
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

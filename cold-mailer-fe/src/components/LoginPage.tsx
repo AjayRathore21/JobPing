@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import axios from "../configs/axiosConfig";
 import "./authForm.scss";
 import { selectSetUser, useUserStore } from "../store/userStore";
+import { setTokenToLS } from "../HelperMethods";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -14,10 +15,11 @@ const LoginPage = () => {
         password: String(values.password),
       };
       const response = await axios.post("/auth/login", payload);
+      const { user, token } = response.data;
       console.log("Login success:", response.data);
       // Store user information in Zustand
-      setUser(response.data.user);
-
+      setUser(user);
+      setTokenToLS(token);
       message.success("Login successful!");
 
       setTimeout(() => {

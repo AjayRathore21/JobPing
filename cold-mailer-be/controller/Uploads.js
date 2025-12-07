@@ -8,6 +8,7 @@ export const csvUpload = async (req, res) => {
     console.log("Uploading file:@@@@", req.file);
     const filePath = req?.file?.path;
 
+    console.log("this is the payload==>", req.body);
     // Upload to Cloudinary
     const result = await cloudinary.uploader.upload(filePath, {
       resource_type: "raw", // 👈 important for CSV or non-image files

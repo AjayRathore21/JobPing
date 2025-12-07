@@ -21,7 +21,6 @@ export const useUserStore = create<UserStore>((set, get) => ({
   getUser: () => get().user,
 }));
 
-
 export const selectUser = (state: UserStore) => state.user;
 export const selectSetUser = (state: UserStore) => state.setUser;
 export const selectClearUser = (state: UserStore) => state.clearUser;

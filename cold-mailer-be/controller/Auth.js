@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import User from "../model/User.js";
 import logger from "../utils/logger.js";
+import jwt from "jsonwebtoken";
 
 export const login = async (req, res) => {
   try {
@@ -19,15 +20,31 @@ export const login = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password." });
     }
-    return res.status(200).json({
-      message: "Login successful.",
-      user: user,
+    // Create JWT (minimal payload)
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
+      expiresIn: "1h",
     });
+
+    // // Set cookie with HttpOnly + SameSite=Strict
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   secure: false, // true if HTTPS
+    //   sameSite: "Strict",
+    //   maxAge: 60 * 60 * 1000, // 1 hour
+    // });
+
+    res.json({ msg: "Logged in", user, token });
   } catch (error) {
     console.error("Login Error:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+// // Logout
+// router.post("/logout", (req, res) => {
+//   res.clearCookie("token");
+//   res.json({ msg: "Logged out" });
+// })
 
 /**
  * @desc Register (Sign up) a new user

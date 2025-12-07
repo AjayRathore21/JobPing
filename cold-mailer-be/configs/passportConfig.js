@@ -1,31 +1,25 @@
-import { Strategy as LocalStrategy } from "passport-local";
-import { User } from "../models/User.js";
+import User from "../model/User.js";
 
-export function configurePassport(passport) {
+// config/passport.js
+import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
+
+export default function configurePassport(passport) {
+  const opts = {
+    jwtFromRequest: ExtractJwt.fromExtractors([
+      ExtractJwt.fromAuthHeaderAsBearerToken(), // Optional: header
+    ]),
+    secretOrKey: process.env.JWT_SECRET_KEY, // Use env var in production
+  };
+
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
+    new JwtStrategy(opts, async (jwt_payload, done) => {
       try {
-        const user = await User.findOne({ username });
-        if (!user) return done(null, false, { message: "User not found" });
-
-        const isMatch = await user.isValidPassword(password);
-        if (!isMatch) return done(null, false, { message: "Invalid password" });
-
-        return done(null, user);
+        const user = await User.findById(jwt_payload.id).select("-password");
+        if (user) return done(null, user); // attaches full user to req.user
+        return done(null, false);
       } catch (err) {
-        return done(err);
+        return done(err, false);
       }
     })
   );
-
-  passport.serializeUser((user, done) => done(null, user.id));
-
-  passport.deserializeUser(async (id, done) => {
-    try {
-      const user = await User.findById(id);
-      done(null, user);
-    } catch (err) {
-      done(err);
-    }
-  });
 }
