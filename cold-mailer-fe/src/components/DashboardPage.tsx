@@ -8,6 +8,8 @@ import axios from "../configs/axiosConfig";
 
 const DashboardPage = () => {
   const user = useUserStore((state) => state.user);
+
+  console.log("User@22:", user);
   const clearUser = useUserStore((state) => state.clearUser);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -15,7 +17,6 @@ const DashboardPage = () => {
   const handleLogout = () => {
     clearUser();
     setTokenToLS("");
-    // Optionally redirect to login page
     navigate("/login");
   };
 

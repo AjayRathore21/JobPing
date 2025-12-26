@@ -2,24 +2,43 @@ import cloudinary from "../configs/cloudinary.js";
 import CsvUpload from "../model/Csv.js";
 import User from "../model/User.js";
 import fs from "fs";
+import { addUuidToCsv } from "../utils/helpers.js";
+
+export const getUserCsvs = async (req, res) => {
+  try {
+    const user = req.user;
+    const csvs = await CsvUpload.find({ "uploadedBy.userId": user._id }).sort({
+      uploadedAt: -1,
+    });
+    res.json({ message: "CSVs fetched successfully", data: csvs });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 export const csvUpload = async (req, res) => {
   try {
     console.log("Uploading file:@@@@", req.file, req.user);
     const filePath = req?.file?.path;
+
     const user = req.user;
 
     console.log("User:@@@@", user);
 
-    // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(filePath, {
+    // Add UUID to each row in the CSV and get the temp file path
+    const tempFilePath = addUuidToCsv(filePath);
+
+    // Upload modified CSV to Cloudinary
+    const result = await cloudinary.uploader.upload(tempFilePath, {
       resource_type: "raw", // 👈 important for CSV or non-image files
       folder: "csv_files",
     });
 
     console.log("Cloudinary upload result:@@@@", result, user);
-    // Remove local file
+
+    // Remove local files
     fs.unlinkSync(filePath);
+    fs.unlinkSync(tempFilePath);
     const csvObj = new CsvUpload({
       name: req.file.originalname,
       url: result.secure_url,

@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router";
 import SignupPage from "./components/SignupPage";
 import DashboardPage from "./components/DashboardPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import OAuthCallback from "./components/OAuthCallback";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
       {/* Public routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/auth/callback" element={<OAuthCallback />} />
     </Routes>
   );
 }

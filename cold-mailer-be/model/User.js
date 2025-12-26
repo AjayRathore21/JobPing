@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
+    // Google OAuth fields
+    googleId: { type: String, sparse: true, unique: true },
+    gmailRefreshToken: { type: String },
+    gmailAccessToken: { type: String },
+    gmailTokenExpiry: { type: Date },
+
     name: {
       type: String,
       required: true,
@@ -15,7 +21,9 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: function () {
+        return !this.googleId;
+      }, // Only required for non-OAuth users
     },
     role: {
       type: String,

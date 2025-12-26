@@ -1,53 +1,40 @@
-import User from "../model/User.js";
+import Csv from "../model/Csv.js";
 import { loadCsvFromCloudinary } from "../utils/helpers.js";
-import nodemailer from "nodemailer";
 import { sendEmailJob } from "../jobs/sendEmailJob.js";
-
-const configNodemailer = (email, pass) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: email || process.env.EMAIL_USER,
-      pass: pass || process.env.EMAIL_PASS,
-    },
-  });
-
-  return transporter;
-};
+import { createGmailTransporter } from "../configs/mailService.js";
 
 const sendEmail = async (req, res) => {
   try {
-    const { email, pass } = req.body || {};
+    const { csvId } = req.body || {};
+    const user = req.user;
 
-    console.log(
-      "Send Email Request Body:@@@",
-      process.env.EMAIL_USER,
-      process.env.EMAIL_PASS
-    );
+    console.log("Sending emails for user:", user.email);
+    const { email } = user || {};
 
-    if (!email || !pass) {
+    // Check if user has Gmail OAuth configured
+    if (!user.gmailRefreshToken) {
       return res.status(400).json({
-        message: "Account email and password are required to send emails.",
+        error:
+          "Gmail OAuth not configured. Please sign in with Google to send emails from your account.",
       });
     }
 
-    const user = await User.findById("6905eeab98fcf0ec0c3530b8").populate(
-      "uploadedFiles"
-    );
+    const csv = await Csv.findById(csvId);
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    if (!csv) {
+      return res.status(404).json({ error: "CSV file not found" });
     }
 
-    const uploadedFiles = user.uploadedFiles;
-
-    const csv = uploadedFiles[1]; // Assuming we want to load the first uploaded CSV file
-
-    console.log("CSV File to be used for sending emails:@@@", csv);
+    console.log("CSV File to be used for sending emails:", csv.url);
 
     const csvData = await loadCsvFromCloudinary(csv.url);
 
-    const transporter = configNodemailer(email, pass);
+    console.log("CSV data loaded, rows:@@@@@@@", user, csvData.length);
+
+    // Create OAuth2-authenticated transporter
+    const transporter = await createGmailTransporter(user);
+
+    // return;
 
     const batchSize = 5;
     // Use async generator for batch processing
@@ -63,6 +50,7 @@ const sendEmail = async (req, res) => {
     }
     res.end();
   } catch (error) {
+    console.error("Error sending emails:", error);
     res.status(500).json({ error: error.message });
   }
 };

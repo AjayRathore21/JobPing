@@ -17,9 +17,6 @@ server.use(passport.initialize());
 configurePassport(passport);
 
 server.use("/", routes);
-
-console.log("is this working?");
-
 connectDB(); // Connect to the database
 
 server.listen(port, () => {

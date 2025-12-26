@@ -6,6 +6,8 @@ import jwt from "jsonwebtoken";
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    console.log('this is the testing log@@@')
     if (!email || !password) {
       return res
         .status(400)
@@ -15,15 +17,21 @@ export const login = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password." });
     }
+
+    // Handle OAuth users or users without a password
+    if (!user.password) {
+      return res.status(400).json({
+        message: "This account uses Google Login. Please sign in with Google.",
+      });
+    }
+
     // Compare entered password with hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password." });
     }
     // Create JWT (minimal payload)
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY);
 
     // // Set cookie with HttpOnly + SameSite=Strict
     // res.cookie("token", token, {
@@ -79,5 +87,18 @@ export const signupUser = async (req, res) => {
   } catch (error) {
     logger.error("Signup Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({ user });
+  } catch (error) {
+    logger.error("Get Profile Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };

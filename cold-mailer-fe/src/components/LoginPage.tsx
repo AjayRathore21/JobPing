@@ -1,16 +1,27 @@
-import { Form, Input, Button, Typography, message } from "antd";
-import { Link, Navigate, useNavigate } from "react-router";
+import { Form, Input, Button, Typography, message, Divider } from "antd";
+import { GoogleOutlined } from "@ant-design/icons";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 import axios from "../configs/axiosConfig";
 import { AxiosError } from "axios";
 import "./authForm.scss";
 import { selectSetUser, useUserStore } from "../store/userStore";
 import { setTokenToLS } from "../HelperMethods";
 import AuthCheck from "../hooks/Authcheck";
+import { useEffect } from "react";
 
 const LoginPage = () => {
   const isAuthenticated = AuthCheck();
   const navigate = useNavigate();
   const setUser = useUserStore(selectSetUser);
+  const [searchParams] = useSearchParams();
+
+  // Check for OAuth error in URL
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error === "oauth_failed") {
+      message.error("Google sign-in failed. Please try again.");
+    }
+  }, [searchParams]);
 
   // Redirect to dashboard if already logged in
   if (isAuthenticated) {
@@ -45,6 +56,13 @@ const LoginPage = () => {
     }
   };
 
+  const handleGoogleLogin = () => {
+    const backendUrl = import.meta.env.VITE_BASE_URL;
+    const googleAuthUrl = `${backendUrl}/auth/google`;
+
+    window.location.href = googleAuthUrl;
+  };
+
   return (
     <div className="auth-form-container">
       <Typography.Title level={2} className="auth-form-title">
@@ -71,8 +89,23 @@ const LoginPage = () => {
           </Button>
         </Form.Item>
       </Form>
-      <div className="auth-form-link">
-        <Link to="/signup">Don’t have an account? Sign up</Link>
+      <Divider>or</Divider>
+      <Button
+        icon={<GoogleOutlined />}
+        onClick={handleGoogleLogin}
+        block
+        size="large"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+        }}
+      >
+        Sign in with Google
+      </Button>
+      <div className="auth-form-link" style={{ marginTop: "16px" }}>
+        <Link to="/signup">Don't have an account? Sign up</Link>
       </div>
     </div>
   );
