@@ -1,0 +1,49 @@
+.analytics-page {
+    .stat-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s;
+
+        &:hover {
+            transform: translateY(-4px);
+        }
+
+        .ant-statistic {
+            .ant-statistic-content {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 20px;
+        }
+    }
+
+    .table-card {
+        .ant-card-head {
+            border-bottom: 1px solid #f1f5f9;
+            padding: 0 24px;
+
+            .ant-card-head-title {
+                font-weight: 600;
+                font-size: 16px;
+            }
+        }
+    }
+
+    .custom-table {
+        .ant-table-thead>tr>th {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+    }
+}
