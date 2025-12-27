@@ -78,21 +78,6 @@ export const createGmailTransporter = async (user) => {
     },
   });
 
-  // Verify connection configuration
-  try {
-    console.log("Verifying transporter connection...");
-    await transporter.verify();
-    console.log("✅ Transporter is ready to take messages");
-  } catch (verifyError) {
-    console.error("❌ Transporter verification failed:", verifyError);
-    if (verifyError.message.includes("535")) {
-      console.error(
-        "Diagnostic: This is an authentication error. Check if the email is a 'Test User' in Google Console and has 'gmail.send' scope."
-      );
-    }
-    throw verifyError;
-  }
-
   transporter.on("token", (token) => {
     console.log("A new access token was generated");
     console.log("User: %s", token.user);
