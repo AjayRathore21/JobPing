@@ -55,12 +55,6 @@ export const requestLoggerMiddleware = (req, res, next) => {
     return next();
   }
 
-  console.log("Request Logger Middleware", {
-    method: req.method,
-    url: req.originalUrl || req.url,
-    correlationId: req.correlationId,
-  });
-
   const startTime = Date.now();
   const correlationId = getCorrelationId(req);
 

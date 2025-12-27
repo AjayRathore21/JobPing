@@ -74,29 +74,30 @@ const sendEmail = async (req, res) => {
     let totalSent = 0;
     let totalFailed = 0;
 
-    // Use async generator for batch processing
-    for await (const batchStatus of sendEmailJob({
+    // Process email job with batch callback
+    await sendEmailJob({
       csvData,
       csv,
       user,
       transporter,
       batchSize,
       email,
-    })) {
-      batchCount++;
+      onBatchProcessed: (batchStatus) => {
+        batchCount++;
 
-      // Track batch metrics
-      if (batchStatus.sent) totalSent += batchStatus.sent;
-      if (batchStatus.failed) totalFailed += batchStatus.failed;
+        // Track batch metrics
+        totalSent += batchStatus.batchSent || 0;
+        totalFailed += batchStatus.batchFailed || 0;
 
-      logger.debug("Email batch processed", {
-        batchNumber: batchCount,
-        batchStatus,
-        correlationId,
-      });
+        logger.debug("Email batch processed", {
+          batchNumber: batchCount,
+          batchStatus,
+          correlationId,
+        });
 
-      res.write(JSON.stringify(batchStatus) + "\n");
-    }
+        res.write(JSON.stringify(batchStatus) + "\n");
+      },
+    });
 
     // Log completion metrics
     logger.info("Email sending completed", {
