@@ -15,6 +15,7 @@ import { MailOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import axios from "../configs/axiosConfig";
 import Papa from "papaparse";
+import { useUserStore } from "../store/userStore";
 
 const { Title, Text } = Typography;
 
@@ -157,12 +158,29 @@ const PreviewCsv = () => {
     }
   };
 
+  const emailSubject = useUserStore((state) => state.emailSubject);
+  const emailHtml = useUserStore((state) => state.emailHtml);
+
   // Handle send email
   const handleSendEmail = async () => {
+    if (!emailSubject || !emailHtml) {
+      message.warning(
+        "Please provide an email subject and content in the Dashboard first."
+      );
+      return;
+    }
+
     setSendingEmail(true);
     try {
-      const payload: Record<string, any> = {
+      const payload: {
+        csvId: string | undefined;
+        subject: string;
+        html: string;
+        selectedRows?: React.Key[];
+      } = {
         csvId: selectedCsv?._id,
+        subject: emailSubject,
+        html: emailHtml,
       };
 
       if (selectedRowKeys.length > 0) {

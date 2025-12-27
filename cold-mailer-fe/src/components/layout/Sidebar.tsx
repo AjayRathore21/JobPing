@@ -31,6 +31,7 @@ function getItem(
 
 const items: MenuItem[] = [
   getItem("Dashboard", "/dashboard", <PieChartOutlined />),
+  getItem("Analytics", "/analytics", <PieChartOutlined />),
   // getItem("Campaigns", "/campaigns", <DesktopOutlined />),
   // getItem("Email Accounts", "/accounts", <UserOutlined />),
   // getItem("Team", "sub2", <TeamOutlined />, [

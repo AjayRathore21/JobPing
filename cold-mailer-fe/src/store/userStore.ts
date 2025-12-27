@@ -12,14 +12,20 @@ interface UserInfo {
 
 interface UserStore {
   user: UserInfo | null;
+  emailSubject: string;
+  emailHtml: string;
   setUser: (user: UserInfo) => void;
   clearUser: () => void;
   getUser: () => UserInfo | null;
   hasGmailOAuth: () => boolean;
+  setEmailSubject: (subject: string) => void;
+  setEmailHtml: (html: string) => void;
 }
 
 export const useUserStore = create<UserStore>((set, get) => ({
   user: null,
+  emailSubject: "",
+  emailHtml: "",
   setUser: (user) => set({ user }),
   clearUser: () => set({ user: null }),
   getUser: () => get().user,
@@ -27,9 +33,13 @@ export const useUserStore = create<UserStore>((set, get) => ({
     const user = get().user;
     return !!(user?.googleId || user?.gmailRefreshToken || user?.hasGmailAuth);
   },
+  setEmailSubject: (emailSubject) => set({ emailSubject }),
+  setEmailHtml: (emailHtml) => set({ emailHtml }),
 }));
 
 export const selectUser = (state: UserStore) => state.user;
 export const selectSetUser = (state: UserStore) => state.setUser;
 export const selectClearUser = (state: UserStore) => state.clearUser;
 export const selectHasGmailOAuth = (state: UserStore) => state.hasGmailOAuth;
+export const selectEmailSubject = (state: UserStore) => state.emailSubject;
+export const selectEmailHtml = (state: UserStore) => state.emailHtml;

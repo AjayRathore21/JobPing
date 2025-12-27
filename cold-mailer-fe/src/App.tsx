@@ -3,6 +3,7 @@ import LoginPage from "./components/LoginPage";
 import { Route, Routes, Navigate } from "react-router";
 import SignupPage from "./components/SignupPage";
 import DashboardPage from "./components/DashboardPage";
+import AnalyticsPage from "./pages/analytics/AnalyticsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import OAuthCallback from "./components/OAuthCallback";
 import AppLayout from "./components/layout/AppLayout";
@@ -15,6 +16,7 @@ function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
         </Route>
       </Route>
 

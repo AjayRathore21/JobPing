@@ -1,23 +1,38 @@
-import React, { useRef, useState } from "react";
+import { useState } from "react";
 import {
   Button,
-  Space,
   Card,
   Typography,
   Upload,
   message,
   Divider,
+  Input,
+  Modal,
+  Space,
 } from "antd";
-import { InboxOutlined, UploadOutlined } from "@ant-design/icons";
+import {
+  InboxOutlined,
+  UploadOutlined,
+  EyeOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
 import PreviewCsv from "./PreviewCsv";
 import axios from "../configs/axiosConfig";
+import { useUserStore } from "../store/userStore";
 
 const { Title, Text } = Typography;
 const { Dragger } = Upload;
+const { TextArea } = Input;
 
 const DashboardPage = () => {
   const [uploading, setUploading] = useState(false);
   const [fileList, setFileList] = useState<any[]>([]);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  const emailSubject = useUserStore((state) => state.emailSubject);
+  const emailHtml = useUserStore((state) => state.emailHtml);
+  const setEmailSubject = useUserStore((state) => state.setEmailSubject);
+  const setEmailHtml = useUserStore((state) => state.setEmailHtml);
 
   const handleUpload = () => {
     if (fileList.length === 0) {
@@ -36,10 +51,9 @@ const DashboardPage = () => {
           "Content-Type": "multipart/form-data",
         },
       })
-      .then((res) => {
+      .then(() => {
         message.success("File uploaded successfully");
         setFileList([]);
-        // We might want to trigger a refresh for PreviewCsv here if it had a refresh method
       })
       .catch((err) => {
         console.error("Upload error:", err);
@@ -84,42 +98,104 @@ const DashboardPage = () => {
             Manage your email outreach and campaign data
           </Text>
         </div>
-        <Button
-          type="primary"
-          icon={<UploadOutlined />}
-          size="large"
-          onClick={handleUpload}
-          loading={uploading}
-          disabled={fileList.length === 0}
-        >
-          Push Data to Cloud
-        </Button>
       </div>
 
-      <Card
-        bordered={false}
+      <div
         style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "24px",
           marginBottom: "32px",
-          background: "#f8fafc",
-          border: "1px dashed #cbd5e1",
         }}
       >
-        <Dragger
-          {...uploadProps}
-          style={{ background: "transparent", border: "none" }}
+        <Card
+          title={
+            <Space>
+              <UploadOutlined />
+              <span>Upload Contacts</span>
+            </Space>
+          }
+          bordered={false}
+          style={{
+            height: "100%",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+            borderRadius: "12px",
+          }}
         >
-          <p className="ant-upload-drag-icon">
-            <InboxOutlined style={{ color: "#1890ff" }} />
-          </p>
-          <p className="ant-upload-text">
-            Click or drag CSV file to this area to upload
-          </p>
-          <p className="ant-upload-hint">
-            Support for a single upload. Data will be processed and indexed for
-            your campaigns.
-          </p>
-        </Dragger>
-      </Card>
+          <Dragger
+            {...uploadProps}
+            style={{
+              background: "#f8fafc",
+              borderRadius: "8px",
+              border: "1px dashed #cbd5e1",
+            }}
+          >
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined style={{ color: "#1890ff" }} />
+            </p>
+            <p className="ant-upload-text">Drag CSV file here</p>
+            <Button
+              type="primary"
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleUpload();
+              }}
+              loading={uploading}
+              disabled={fileList.length === 0}
+              style={{ marginTop: "12px" }}
+            >
+              Upload CSV
+            </Button>
+          </Dragger>
+        </Card>
+
+        <Card
+          title={
+            <Space>
+              <EditOutlined />
+              <span>Email Content Editor</span>
+            </Space>
+          }
+          bordered={false}
+          style={{
+            height: "100%",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+            borderRadius: "12px",
+          }}
+          extra={
+            <Button
+              icon={<EyeOutlined />}
+              onClick={() => setIsPreviewOpen(true)}
+              disabled={!emailHtml}
+            >
+              Preview
+            </Button>
+          }
+        >
+          <Space direction="vertical" style={{ width: "100%" }} size="middle">
+            <div>
+              <Text strong>Email Subject</Text>
+              <Input
+                placeholder="Enter email subject"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                style={{ marginTop: "8px" }}
+              />
+            </div>
+            <div>
+              <Text strong>HTML Layout / Message</Text>
+              <TextArea
+                placeholder="Enter HTML content or plain text..."
+                rows={6}
+                value={emailHtml}
+                onChange={(e) => setEmailHtml(e.target.value)}
+                style={{ marginTop: "8px", fontFamily: "monospace" }}
+              />
+            </div>
+          </Space>
+        </Card>
+      </div>
 
       <Divider />
 
@@ -127,6 +203,47 @@ const DashboardPage = () => {
         Data Overview
       </Title>
       <PreviewCsv />
+
+      <Modal
+        title="Email Layout Preview"
+        open={isPreviewOpen}
+        onCancel={() => setIsPreviewOpen(false)}
+        footer={[
+          <Button key="close" onClick={() => setIsPreviewOpen(false)}>
+            Close Preview
+          </Button>,
+        ]}
+        width={800}
+        centered
+      >
+        <div
+          style={{
+            border: "1px solid #f1f5f9",
+            padding: "24px",
+            minHeight: "300px",
+            borderRadius: "8px",
+            background: "#fff",
+          }}
+        >
+          <div
+            style={{
+              marginBottom: "16px",
+              borderBottom: "1px solid #f1f5f9",
+              paddingBottom: "12px",
+            }}
+          >
+            <Text type="secondary">Subject:</Text>{" "}
+            <Text strong>{emailSubject || "(No Subject)"}</Text>
+          </div>
+          <div
+            dangerouslySetInnerHTML={{
+              __html:
+                emailHtml ||
+                '<p style="color: #94a3b8; text-align: center; margin-top: 100px;">No HTML content provided</p>',
+            }}
+          />
+        </div>
+      </Modal>
     </div>
   );
 };
