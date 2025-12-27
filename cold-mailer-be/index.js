@@ -12,6 +12,26 @@ import {
   errorLoggerMiddleware,
 } from "./middleware/requestLogger.js";
 
+// ============================================
+// Error Handling (Early Catch)
+// ============================================
+process.on("uncaughtException", (error) => {
+  logger.logError(error, {
+    context: "UncaughtException",
+    fatal: true,
+  });
+  // Give logger a moment to flush if it's async, then exit
+  setTimeout(() => process.exit(1), 100);
+});
+
+process.on("unhandledRejection", (reason) => {
+  logger.error("Unhandled Promise Rejection", {
+    context: "UnhandledRejection",
+    reason: reason instanceof Error ? reason.message : reason,
+    stack: reason instanceof Error ? reason.stack : undefined,
+  });
+});
+
 const server = express();
 const port = process.env.PORT || 3000;
 
@@ -125,22 +145,5 @@ const gracefulShutdown = (signal) => {
 
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
-
-// Handle uncaught exceptions and rejections
-process.on("uncaughtException", (error) => {
-  logger.logError(error, {
-    context: "UncaughtException",
-    fatal: true,
-  });
-  process.exit(1);
-});
-
-process.on("unhandledRejection", (reason, promise) => {
-  logger.error("Unhandled Promise Rejection", {
-    context: "UnhandledRejection",
-    reason: reason instanceof Error ? reason.message : reason,
-    stack: reason instanceof Error ? reason.stack : undefined,
-  });
-});
 
 startServer();

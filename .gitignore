@@ -1,8 +1,7 @@
 # Frontend
 cold-mailer-fe/node_modules
 cold-mailer-fe/.env
-
-
+cold-mailer-fe/.vite
 
 # Backend
 cold-mailer-be/node_modules

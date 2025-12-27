@@ -9,6 +9,11 @@ const logger = createLogger("AuthController");
 export const login = async (req, res) => {
   const startTime = Date.now();
 
+  console.log("Login attempt initiated", {
+    email: req.body.email,
+    correlationId: req.correlationId,
+  });
+
   try {
     const { email, password } = req.body;
     const correlationId = req.correlationId;

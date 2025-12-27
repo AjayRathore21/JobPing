@@ -13,8 +13,6 @@ export const createGmailTransporter = async (user) => {
     throw new Error(
       "Gmail OAuth not configured. Please sign in with Google to send emails."
     );
-
-    
   }
 
   const oauth2Client = new google.auth.OAuth2(
@@ -29,13 +27,21 @@ export const createGmailTransporter = async (user) => {
   // Get a fresh access token
   let accessToken;
   try {
-    const { token } = await oauth2Client.getAccessToken();
+    const { token, res } = await oauth2Client.getAccessToken();
     accessToken = token;
+
+    // Log the scopes to verify gmail.send is present
+    const scopes = res?.data?.scope || "No scopes found in response";
     console.log("Successfully retrieved access token for user:", user.email);
+    console.log("Authorized Scopes:", scopes);
+
+    if (!scopes.includes("https://www.googleapis.com/auth/gmail.send")) {
+      console.warn("CRITICAL: Token DOES NOT have gmail.send scope!");
+    }
   } catch (getTokenError) {
     console.error("Error retrieving access token:", getTokenError);
     throw new Error(
-      "Failed to obtain Gmail access token via Google API. Please re-authenticate."
+      `Failed to obtain Gmail access token: ${getTokenError.message}. Please re-authenticate.`
     );
   }
 
@@ -57,10 +63,11 @@ export const createGmailTransporter = async (user) => {
     "Using Refresh Token (last 4 chars):",
     user.gmailRefreshToken.slice(-4)
   );
-  console.log("Using Access Token (last 4 chars):", accessToken.slice(-4));
 
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true, // use SSL
     auth: {
       type: "OAuth2",
       user: user.email,
@@ -70,6 +77,21 @@ export const createGmailTransporter = async (user) => {
       accessToken: accessToken,
     },
   });
+
+  // Verify connection configuration
+  try {
+    console.log("Verifying transporter connection...");
+    await transporter.verify();
+    console.log("✅ Transporter is ready to take messages");
+  } catch (verifyError) {
+    console.error("❌ Transporter verification failed:", verifyError);
+    if (verifyError.message.includes("535")) {
+      console.error(
+        "Diagnostic: This is an authentication error. Check if the email is a 'Test User' in Google Console and has 'gmail.send' scope."
+      );
+    }
+    throw verifyError;
+  }
 
   transporter.on("token", (token) => {
     console.log("A new access token was generated");

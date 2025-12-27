@@ -305,8 +305,13 @@ logger.child = (defaultMeta) => {
     exitOnError: false,
   });
 
-  // Add utility methods to child logger
+  // Add ALL utility methods to child logger
   childLogger.startTimer = logger.startTimer.bind(logger);
+  childLogger.httpRequest = logger.httpRequest.bind(logger);
+  childLogger.logError = logger.logError.bind(logger);
+  childLogger.audit = logger.audit.bind(logger);
+  childLogger.metric = logger.metric.bind(logger);
+
   return childLogger;
 };
 
