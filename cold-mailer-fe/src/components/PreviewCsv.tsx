@@ -11,9 +11,12 @@ import {
   Checkbox,
   message,
 } from "antd";
+import { MailOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import axios from "../configs/axiosConfig";
 import Papa from "papaparse";
+
+const { Title, Text } = Typography;
 
 interface CsvRecord {
   _id: string;
@@ -38,9 +41,7 @@ const PreviewCsv = () => {
 
   // Row selection state
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [selectedRows, setSelectedRows] = useState<Record<string, string>[]>(
-    []
-  );
+  const [, setSelectedRows] = useState<Record<string, string>[]>([]);
   const [startIndex, setStartIndex] = useState<number | null>(null);
   const [endIndex, setEndIndex] = useState<number | null>(null);
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -90,7 +91,7 @@ const PreviewCsv = () => {
           }
           setModalLoading(false);
         },
-        error: (err) => {
+        error: (err: Error) => {
           console.error("CSV parsing error:", err);
           setModalLoading(false);
         },
@@ -260,32 +261,52 @@ const PreviewCsv = () => {
   }
 
   return (
-    <div style={{ marginTop: "24px" }}>
-      <Typography.Title level={4}>Uploaded CSV Files</Typography.Title>
+    <div style={{ marginTop: "32px" }}>
       <Table
         dataSource={csvs}
         columns={columns}
         rowKey="_id"
         locale={{ emptyText: "No CSV files uploaded yet" }}
         pagination={{ pageSize: 10 }}
+        className="custom-table"
+        style={{ background: "#fff", borderRadius: "12px", overflow: "hidden" }}
       />
 
       <Modal
-        title={`Preview: ${selectedCsv?.name || ""}`}
+        title={
+          <div style={{ padding: "16px 0" }}>
+            <Title level={4} style={{ margin: 0 }}>
+              Preview: {selectedCsv?.name}
+            </Title>
+            <Text type="secondary">
+              Review and select records for your outreach
+            </Text>
+          </div>
+        }
         open={isModalOpen}
         onCancel={handleModalClose}
         footer={[
+          <Button key="back" onClick={handleModalClose} size="large">
+            Cancel
+          </Button>,
           <Button
             key="send"
             type="primary"
             onClick={handleSendEmail}
             loading={sendingEmail}
+            size="large"
+            icon={<MailOutlined />}
+            style={{ minWidth: "160px" }}
           >
-            Send Email
+            Send Emails Now
           </Button>,
         ]}
-        width={1000}
-        styles={{ body: { maxHeight: "70vh", overflow: "auto" } }}
+        width={1100}
+        styles={{
+          body: { maxHeight: "70vh", overflow: "auto", padding: "0 24px 24px" },
+          header: { borderBottom: "1px solid #f1f5f9", marginBottom: "24px" },
+        }}
+        centered
       >
         {modalLoading ? (
           <div style={{ textAlign: "center", padding: "40px" }}>

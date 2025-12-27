@@ -1,0 +1,110 @@
+.sidebar {
+    height: 100vh;
+    position: sticky !important;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    background: #001529;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+
+    .logo-container {
+        height: 64px;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        transition: all 0.3s;
+        overflow: hidden;
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(24, 144, 255, 0.3);
+            flex-shrink: 0;
+
+            svg {
+                color: white;
+                font-size: 18px;
+            }
+        }
+
+        .logo-text {
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+    }
+
+    &.ant-layout-sider-collapsed {
+        .logo-container {
+            padding: 0 24px;
+            justify-content: center;
+
+            .logo-text {
+                opacity: 0;
+                width: 0;
+                pointer-events: none;
+            }
+        }
+    }
+
+    .ant-menu {
+        border-inline-end: none !important;
+        background: transparent;
+
+        .ant-menu-item {
+            height: 44px;
+            line-height: 44px;
+            margin: 4px 12px !important;
+            width: calc(100% - 24px) !important;
+            border-radius: 8px;
+            transition: all 0.2s;
+
+            &.ant-menu-item-selected {
+                background: rgba(24, 144, 255, 0.1) !important;
+                color: #1890ff !important;
+
+                .ant-menu-item-icon {
+                    color: #1890ff;
+                }
+            }
+
+            &:hover:not(.ant-menu-item-selected) {
+                background: rgba(255, 255, 255, 0.05) !important;
+            }
+        }
+
+        .ant-menu-submenu-title {
+            height: 44px;
+            line-height: 44px;
+            margin: 4px 12px !important;
+            width: calc(100% - 24px) !important;
+            border-radius: 8px;
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.05) !important;
+            }
+        }
+
+        .ant-menu-sub {
+            background: rgba(0, 0, 0, 0.2) !important;
+            border-radius: 8px;
+            margin: 4px 12px;
+        }
+    }
+
+    .ant-layout-sider-trigger {
+        background: #002140;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+}

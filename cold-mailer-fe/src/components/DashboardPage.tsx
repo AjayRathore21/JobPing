@@ -1,36 +1,35 @@
-import { useNavigate } from "react-router";
-import { useUserStore } from "../store/userStore";
-import { useRef } from "react";
-import { Button, Space } from "antd";
+import React, { useRef, useState } from "react";
+import {
+  Button,
+  Space,
+  Card,
+  Typography,
+  Upload,
+  message,
+  Divider,
+} from "antd";
+import { InboxOutlined, UploadOutlined } from "@ant-design/icons";
 import PreviewCsv from "./PreviewCsv";
-import { setTokenToLS } from "../HelperMethods";
 import axios from "../configs/axiosConfig";
 
+const { Title, Text } = Typography;
+const { Dragger } = Upload;
+
 const DashboardPage = () => {
-  const user = useUserStore((state) => state.user);
-
-  console.log("User@22:", user);
-  const clearUser = useUserStore((state) => state.clearUser);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    clearUser();
-    setTokenToLS("");
-    navigate("/login");
-  };
+  const [uploading, setUploading] = useState(false);
+  const [fileList, setFileList] = useState<any[]>([]);
 
   const handleUpload = () => {
-    const file = fileInputRef.current?.files?.[0];
-
-    if (!file) {
-      console.error("No file selected");
+    if (fileList.length === 0) {
+      message.warning("Please select a file first");
       return;
     }
 
+    const file = fileList[0];
     const formData = new FormData();
-    formData.append("csv", file); // "csv" matches multer's upload.single("csv")
+    formData.append("csv", file);
 
+    setUploading(true);
     axios
       .post("/upload/csv", formData, {
         headers: {
@@ -38,57 +37,95 @@ const DashboardPage = () => {
         },
       })
       .then((res) => {
-        console.log("Upload response:", res.data);
-        // Clear the file input after successful upload
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
+        message.success("File uploaded successfully");
+        setFileList([]);
+        // We might want to trigger a refresh for PreviewCsv here if it had a refresh method
       })
       .catch((err) => {
         console.error("Upload error:", err);
+        message.error("Failed to upload file");
+      })
+      .finally(() => {
+        setUploading(false);
       });
   };
 
+  const uploadProps = {
+    onRemove: (file: any) => {
+      const index = fileList.indexOf(file);
+      const newFileList = fileList.slice();
+      newFileList.splice(index, 1);
+      setFileList(newFileList);
+    },
+    beforeUpload: (file: any) => {
+      setFileList([file]);
+      return false;
+    },
+    fileList,
+    maxCount: 1,
+    accept: ".csv",
+  };
+
   return (
-    <div>
-      <header
+    <div className="dashboard-page">
+      <div
         style={{
+          marginBottom: "32px",
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
-          padding: "16px 0",
+          alignItems: "flex-end",
         }}
       >
-        <div>{user && <span>Welcome, {user.name || user.email}!</span>}</div>
-        <button
-          onClick={handleLogout}
-          style={{
-            padding: "8px 16px",
-            background: "#1677ff",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-            cursor: "pointer",
-          }}
+        <div>
+          <Title level={2} style={{ margin: 0 }}>
+            Dashboard
+          </Title>
+          <Text type="secondary">
+            Manage your email outreach and campaign data
+          </Text>
+        </div>
+        <Button
+          type="primary"
+          icon={<UploadOutlined />}
+          size="large"
+          onClick={handleUpload}
+          loading={uploading}
+          disabled={fileList.length === 0}
         >
-          Logout
-        </button>
-      </header>
-      <main>
-        <h1>Dashboard</h1>
-        <Space>
-          <input
-            type="file"
-            accept=".csv"
-            ref={fileInputRef}
-            style={{ display: "block", margin: "16px 0" }}
-          />
-          <Button onClick={handleUpload} type="primary">
-            Upload
-          </Button>
-        </Space>
-      </main>
+          Push Data to Cloud
+        </Button>
+      </div>
 
+      <Card
+        bordered={false}
+        style={{
+          marginBottom: "32px",
+          background: "#f8fafc",
+          border: "1px dashed #cbd5e1",
+        }}
+      >
+        <Dragger
+          {...uploadProps}
+          style={{ background: "transparent", border: "none" }}
+        >
+          <p className="ant-upload-drag-icon">
+            <InboxOutlined style={{ color: "#1890ff" }} />
+          </p>
+          <p className="ant-upload-text">
+            Click or drag CSV file to this area to upload
+          </p>
+          <p className="ant-upload-hint">
+            Support for a single upload. Data will be processed and indexed for
+            your campaigns.
+          </p>
+        </Dragger>
+      </Card>
+
+      <Divider />
+
+      <Title level={4} style={{ marginBottom: "24px" }}>
+        Data Overview
+      </Title>
       <PreviewCsv />
     </div>
   );
