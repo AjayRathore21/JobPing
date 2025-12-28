@@ -10,8 +10,15 @@ import {
   Space,
   Checkbox,
   message,
+  Tooltip,
 } from "antd";
-import { MailOutlined } from "@ant-design/icons";
+import {
+  MailOutlined,
+  EyeOutlined,
+  DeleteOutlined,
+  SendOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import axios from "../configs/axiosConfig";
 import Papa from "papaparse";
@@ -65,6 +72,17 @@ const PreviewCsv = () => {
     }
   };
 
+  const handleDeleteCsv = async (id: string) => {
+    try {
+      await axios.delete(`/upload/csv/${id}`);
+      setCsvs(csvs.filter((c) => c._id !== id));
+      message.success("CSV deleted successfully");
+    } catch (err) {
+      console.error("Error deleting CSV:", err);
+      message.error("Failed to delete CSV");
+    }
+  };
+
   const handlePreviewClick = async (record: CsvRecord) => {
     setSelectedCsv(record);
     setIsModalOpen(true);
@@ -87,7 +105,7 @@ const PreviewCsv = () => {
           if (data.length > 0) {
             setPreviewHeaders(data[0]);
             setPreviewData(
-              data.slice(1).filter((row) => row.some((cell) => cell))
+              data.slice(1).filter((row) => row.some((cell) => cell)) // remove header used for column name
             );
           }
           setModalLoading(false);
@@ -114,47 +132,90 @@ const PreviewCsv = () => {
     setEndIndex(null);
   };
 
+  const idIndex = previewHeaders.findIndex((h) => h.toLowerCase() === "id");
+
+  // Transform data rows into objects for the table
+  const previewTableData = previewData.map((row, rowIndex) => {
+    const key = idIndex !== -1 ? row[idIndex] : String(rowIndex);
+    const rowObj: Record<string, string> = { key };
+    row.forEach((cell, cellIndex) => {
+      rowObj[`col_${cellIndex}`] = cell;
+    });
+    return rowObj;
+  });
+
   // Handle select all
   const handleSelectAll = () => {
     if (selectedRowKeys.length === previewData.length) {
       setSelectedRowKeys([]);
       setSelectedRows([]);
     } else {
-      setSelectedRowKeys(previewData.map((_, index) => String(index)));
-      // Convert all data to row objects
-      const allRows = previewData.map((row, rowIndex) => {
-        const rowObj: Record<string, string> = { key: String(rowIndex) };
-        row.forEach((cell, cellIndex) => {
-          rowObj[`col_${cellIndex}`] = cell;
-        });
-        return rowObj;
-      });
-      setSelectedRows(allRows);
+      const keys = previewData.map((row, rowIndex) =>
+        idIndex !== -1 ? row[idIndex] : String(rowIndex)
+      );
+      setSelectedRowKeys(keys);
+      setSelectedRows(previewTableData);
     }
   };
 
-  // Apply range selection based on start/end index
+  // Handle range selection
   const handleApplyRange = () => {
     if (startIndex !== null && endIndex !== null) {
-      const start = Math.max(0, startIndex - 1); // Convert to 0-based
-      const end = Math.min(previewData.length - 1, endIndex - 1);
+      const start = startIndex - 1; // preview data is 0 index based
+      const end = endIndex - 1;
 
       if (start <= end) {
         const keys: React.Key[] = [];
         const rows: Record<string, string>[] = [];
         for (let i = start; i <= end; i++) {
-          keys.push(String(i));
-          const rowObj: Record<string, string> = { key: String(i) };
-          previewData[i].forEach((cell, cellIndex) => {
-            rowObj[`col_${cellIndex}`] = cell;
-          });
-          rows.push(rowObj);
+          const key = idIndex !== -1 ? previewData[i][idIndex] : String(i);
+          keys.push(key);
+          rows.push(previewTableData[i]);
         }
         setSelectedRowKeys(keys);
         setSelectedRows(rows);
       } else {
         message.error("Start index must be less than or equal to end index");
       }
+    }
+  };
+
+  const handleDeleteRow = (key: string) => {
+    const newData = previewData.filter((row, rowIndex) => {
+      const rowKey = idIndex !== -1 ? row[idIndex] : String(rowIndex);
+      return rowKey !== key;
+    });
+    setPreviewData(newData);
+    setSelectedRowKeys(selectedRowKeys.filter((k) => k !== key));
+    message.success("Row removed from preview");
+  };
+
+  const [resendingKey, setResendingKey] = useState<string | null>(null);
+
+  const handleSingleSend = async (key: string) => {
+    if (!emailSubject || !emailHtml) {
+      message.warning(
+        "Please provide an email subject and content in the Dashboard first."
+      );
+      return;
+    }
+
+    setResendingKey(key);
+    try {
+      const payload = {
+        csvId: selectedCsv?._id,
+        subject: emailSubject,
+        html: emailHtml,
+        selectedRows: [key],
+      };
+
+      await axios.post("/send-email", payload);
+      message.success("Email sent successfully!");
+    } catch (err) {
+      console.error("Error sending single email:", err);
+      message.error("Failed to send email");
+    } finally {
+      setResendingKey(null);
     }
   };
 
@@ -205,6 +266,7 @@ const PreviewCsv = () => {
   // Row selection config
   const rowSelection = {
     selectedRowKeys,
+    hideSelectAll: true,
     onChange: (
       newSelectedRowKeys: React.Key[],
       newSelectedRows: Record<string, string>[]
@@ -214,24 +276,66 @@ const PreviewCsv = () => {
     },
   };
 
-  // Generate columns for preview table
-  const previewColumns: ColumnsType<Record<string, string>> = previewHeaders
-    .map((header, index) => ({
-      title: header,
-      dataIndex: `col_${index}`,
-      key: `col_${index}`,
-      ellipsis: true,
-    }))
-    .filter((col) => col.title !== "id");
+  const previewColumns: ColumnsType<Record<string, string>> = [
+    ...previewHeaders
+      .map((header, index) => ({
+        title: header,
+        dataIndex: `col_${index}`,
+        key: `col_${index}`,
+        ellipsis: true,
+      }))
+      .filter((col) => col.title.toLowerCase() !== "id"),
+    {
+      title: "Actions",
+      key: "actions",
+      fixed: "right",
+      width: 250,
+      render: (_, record: Record<string, string>) => {
+        const key = record.key;
+        // Check if there's a status column that indicates failure
+        const hasFailed = Object.entries(record).some(
+          ([k, v]) =>
+            k.includes("col_") &&
+            typeof v === "string" &&
+            (v.toLowerCase().includes("failed") ||
+              v.toLowerCase().includes("error"))
+        );
 
-  // Transform data rows into objects for the table
-  const previewTableData = previewData.map((row, rowIndex) => {
-    const rowObj: Record<string, string> = { key: String(rowIndex) };
-    row.forEach((cell, cellIndex) => {
-      rowObj[`col_${cellIndex}`] = cell;
-    });
-    return rowObj;
-  });
+        return (
+          <Space size="small">
+            <Tooltip title="Resend Email">
+              <Button
+                size="small"
+                icon={<SendOutlined />}
+                onClick={() => handleSingleSend(key)}
+                loading={resendingKey === key}
+              />
+            </Tooltip>
+            {hasFailed && (
+              <Tooltip title="Retry Failed Email">
+                <Button
+                  size="small"
+                  type="primary"
+                  ghost
+                  icon={<ReloadOutlined />}
+                  onClick={() => handleSingleSend(key)}
+                  loading={resendingKey === key}
+                />
+              </Tooltip>
+            )}
+            <Tooltip title="Delete Row">
+              <Button
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => handleDeleteRow(key)}
+              />
+            </Tooltip>
+          </Space>
+        );
+      },
+    },
+  ];
 
   const columns: ColumnsType<CsvRecord> = [
     {
@@ -263,6 +367,29 @@ const PreviewCsv = () => {
       title: "Sent",
       dataIndex: "sent",
       key: "sent",
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record: CsvRecord) => (
+        <Space size="small">
+          <Tooltip title="Preview Content">
+            <Button
+              type="text"
+              icon={<EyeOutlined />}
+              onClick={() => handlePreviewClick(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Delete CSV">
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDeleteCsv(record._id)}
+            />
+          </Tooltip>
+        </Space>
+      ),
     },
   ];
 
@@ -349,10 +476,6 @@ const PreviewCsv = () => {
                   checked={
                     selectedRowKeys.length === previewData.length &&
                     previewData.length > 0
-                  }
-                  indeterminate={
-                    selectedRowKeys.length > 0 &&
-                    selectedRowKeys.length < previewData.length
                   }
                   onChange={handleSelectAll}
                 >
