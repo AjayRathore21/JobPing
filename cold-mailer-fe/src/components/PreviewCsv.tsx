@@ -10,8 +10,15 @@ import {
   Space,
   Checkbox,
   message,
+  Tooltip,
 } from "antd";
-import { MailOutlined } from "@ant-design/icons";
+import {
+  MailOutlined,
+  EyeOutlined,
+  DeleteOutlined,
+  SendOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import axios from "../configs/axiosConfig";
 import Papa from "papaparse";
@@ -62,6 +69,17 @@ const PreviewCsv = () => {
       setError("Failed to load uploaded files");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteCsv = async (id: string) => {
+    try {
+      await axios.delete(`/upload/csv/${id}`);
+      setCsvs(csvs.filter((c) => c._id !== id));
+      message.success("CSV deleted successfully");
+    } catch (err) {
+      console.error("Error deleting CSV:", err);
+      message.error("Failed to delete CSV");
     }
   };
 
@@ -140,7 +158,7 @@ const PreviewCsv = () => {
     }
   };
 
-  // Apply range selection based on start/end index
+  // Handle range selection
   const handleApplyRange = () => {
     if (startIndex !== null && endIndex !== null) {
       const start = startIndex - 1; // preview data is 0 index based
@@ -159,6 +177,45 @@ const PreviewCsv = () => {
       } else {
         message.error("Start index must be less than or equal to end index");
       }
+    }
+  };
+
+  const handleDeleteRow = (key: string) => {
+    const newData = previewData.filter((row, rowIndex) => {
+      const rowKey = idIndex !== -1 ? row[idIndex] : String(rowIndex);
+      return rowKey !== key;
+    });
+    setPreviewData(newData);
+    setSelectedRowKeys(selectedRowKeys.filter((k) => k !== key));
+    message.success("Row removed from preview");
+  };
+
+  const [resendingKey, setResendingKey] = useState<string | null>(null);
+
+  const handleSingleSend = async (key: string) => {
+    if (!emailSubject || !emailHtml) {
+      message.warning(
+        "Please provide an email subject and content in the Dashboard first."
+      );
+      return;
+    }
+
+    setResendingKey(key);
+    try {
+      const payload = {
+        csvId: selectedCsv?._id,
+        subject: emailSubject,
+        html: emailHtml,
+        selectedRows: [key],
+      };
+
+      await axios.post("/send-email", payload);
+      message.success("Email sent successfully!");
+    } catch (err) {
+      console.error("Error sending single email:", err);
+      message.error("Failed to send email");
+    } finally {
+      setResendingKey(null);
     }
   };
 
@@ -219,14 +276,66 @@ const PreviewCsv = () => {
     },
   };
 
-  const previewColumns: ColumnsType<Record<string, string>> = previewHeaders
-    .map((header, index) => ({
-      title: header,
-      dataIndex: `col_${index}`,
-      key: `col_${index}`,
-      ellipsis: true,
-    }))
-    .filter((col) => col.title.toLowerCase() !== "id");
+  const previewColumns: ColumnsType<Record<string, string>> = [
+    ...previewHeaders
+      .map((header, index) => ({
+        title: header,
+        dataIndex: `col_${index}`,
+        key: `col_${index}`,
+        ellipsis: true,
+      }))
+      .filter((col) => col.title.toLowerCase() !== "id"),
+    {
+      title: "Actions",
+      key: "actions",
+      fixed: "right",
+      width: 250,
+      render: (_, record: Record<string, string>) => {
+        const key = record.key;
+        // Check if there's a status column that indicates failure
+        const hasFailed = Object.entries(record).some(
+          ([k, v]) =>
+            k.includes("col_") &&
+            typeof v === "string" &&
+            (v.toLowerCase().includes("failed") ||
+              v.toLowerCase().includes("error"))
+        );
+
+        return (
+          <Space size="small">
+            <Tooltip title="Resend Email">
+              <Button
+                size="small"
+                icon={<SendOutlined />}
+                onClick={() => handleSingleSend(key)}
+                loading={resendingKey === key}
+              />
+            </Tooltip>
+            {hasFailed && (
+              <Tooltip title="Retry Failed Email">
+                <Button
+                  size="small"
+                  type="primary"
+                  ghost
+                  icon={<ReloadOutlined />}
+                  onClick={() => handleSingleSend(key)}
+                  loading={resendingKey === key}
+                />
+              </Tooltip>
+            )}
+            <Tooltip title="Delete Row">
+              <Button
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => handleDeleteRow(key)}
+              />
+            </Tooltip>
+          </Space>
+        );
+      },
+    },
+  ];
 
   const columns: ColumnsType<CsvRecord> = [
     {
@@ -258,6 +367,29 @@ const PreviewCsv = () => {
       title: "Sent",
       dataIndex: "sent",
       key: "sent",
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record: CsvRecord) => (
+        <Space size="small">
+          <Tooltip title="Preview Content">
+            <Button
+              type="text"
+              icon={<EyeOutlined />}
+              onClick={() => handlePreviewClick(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Delete CSV">
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDeleteCsv(record._id)}
+            />
+          </Tooltip>
+        </Space>
+      ),
     },
   ];
 
