@@ -87,7 +87,7 @@ const PreviewCsv = () => {
           if (data.length > 0) {
             setPreviewHeaders(data[0]);
             setPreviewData(
-              data.slice(1).filter((row) => row.some((cell) => cell))
+              data.slice(1).filter((row) => row.some((cell) => cell)) // remove header used for column name
             );
           }
           setModalLoading(false);
@@ -114,41 +114,45 @@ const PreviewCsv = () => {
     setEndIndex(null);
   };
 
+  const idIndex = previewHeaders.findIndex((h) => h.toLowerCase() === "id");
+
+  // Transform data rows into objects for the table
+  const previewTableData = previewData.map((row, rowIndex) => {
+    const key = idIndex !== -1 ? row[idIndex] : String(rowIndex);
+    const rowObj: Record<string, string> = { key };
+    row.forEach((cell, cellIndex) => {
+      rowObj[`col_${cellIndex}`] = cell;
+    });
+    return rowObj;
+  });
+
   // Handle select all
   const handleSelectAll = () => {
     if (selectedRowKeys.length === previewData.length) {
       setSelectedRowKeys([]);
       setSelectedRows([]);
     } else {
-      setSelectedRowKeys(previewData.map((_, index) => String(index)));
-      // Convert all data to row objects
-      const allRows = previewData.map((row, rowIndex) => {
-        const rowObj: Record<string, string> = { key: String(rowIndex) };
-        row.forEach((cell, cellIndex) => {
-          rowObj[`col_${cellIndex}`] = cell;
-        });
-        return rowObj;
-      });
-      setSelectedRows(allRows);
+      const keys = previewData.map((row, rowIndex) =>
+        idIndex !== -1 ? row[idIndex] : String(rowIndex)
+      );
+      setSelectedRowKeys(keys);
+      setSelectedRows(previewTableData);
     }
   };
 
   // Apply range selection based on start/end index
   const handleApplyRange = () => {
     if (startIndex !== null && endIndex !== null) {
-      const start = Math.max(0, startIndex - 1); // Convert to 0-based
-      const end = Math.min(previewData.length - 1, endIndex - 1);
+      const start = startIndex - 1; // preview data is 0 index based
+      const end = endIndex - 1;
 
       if (start <= end) {
         const keys: React.Key[] = [];
         const rows: Record<string, string>[] = [];
         for (let i = start; i <= end; i++) {
-          keys.push(String(i));
-          const rowObj: Record<string, string> = { key: String(i) };
-          previewData[i].forEach((cell, cellIndex) => {
-            rowObj[`col_${cellIndex}`] = cell;
-          });
-          rows.push(rowObj);
+          const key = idIndex !== -1 ? previewData[i][idIndex] : String(i);
+          keys.push(key);
+          rows.push(previewTableData[i]);
         }
         setSelectedRowKeys(keys);
         setSelectedRows(rows);
@@ -205,6 +209,7 @@ const PreviewCsv = () => {
   // Row selection config
   const rowSelection = {
     selectedRowKeys,
+    hideSelectAll: true,
     onChange: (
       newSelectedRowKeys: React.Key[],
       newSelectedRows: Record<string, string>[]
@@ -214,7 +219,6 @@ const PreviewCsv = () => {
     },
   };
 
-  // Generate columns for preview table
   const previewColumns: ColumnsType<Record<string, string>> = previewHeaders
     .map((header, index) => ({
       title: header,
@@ -222,16 +226,7 @@ const PreviewCsv = () => {
       key: `col_${index}`,
       ellipsis: true,
     }))
-    .filter((col) => col.title !== "id");
-
-  // Transform data rows into objects for the table
-  const previewTableData = previewData.map((row, rowIndex) => {
-    const rowObj: Record<string, string> = { key: String(rowIndex) };
-    row.forEach((cell, cellIndex) => {
-      rowObj[`col_${cellIndex}`] = cell;
-    });
-    return rowObj;
-  });
+    .filter((col) => col.title.toLowerCase() !== "id");
 
   const columns: ColumnsType<CsvRecord> = [
     {
@@ -349,10 +344,6 @@ const PreviewCsv = () => {
                   checked={
                     selectedRowKeys.length === previewData.length &&
                     previewData.length > 0
-                  }
-                  indeterminate={
-                    selectedRowKeys.length > 0 &&
-                    selectedRowKeys.length < previewData.length
                   }
                   onChange={handleSelectAll}
                 >
