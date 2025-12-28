@@ -66,3 +66,38 @@ export const csvUpload = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const deleteCsv = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+
+    const csv = await CsvUpload.findById(id);
+
+    if (!csv) {
+      return res.status(404).json({ error: "CSV file not found" });
+    }
+
+    // Verify ownership
+    if (csv.uploadedBy.userId.toString() !== user._id.toString()) {
+      return res.status(403).json({ error: "Unauthorized to delete this CSV" });
+    }
+
+    // Delete from Cloudinary if publicId exists
+    if (csv.publicId) {
+      await cloudinary.uploader.destroy(csv.publicId, { resource_type: "raw" });
+    }
+
+    // Delete from database
+    await CsvUpload.findByIdAndDelete(id);
+
+    // Remove from User's uploadedFiles array
+    await User.findByIdAndUpdate(user._id, {
+      $pull: { uploadedFiles: id },
+    });
+
+    res.json({ message: "CSV file deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

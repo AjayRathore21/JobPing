@@ -33,6 +33,8 @@ interface CsvRecord {
   totalRecords: number;
   sent: number;
   uploadedAt: string;
+  sentEmailRowIds?: string[];
+  failedEmailRowIds?: string[];
 }
 
 const PreviewCsv = () => {
@@ -50,13 +52,28 @@ const PreviewCsv = () => {
   // Row selection state
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [, setSelectedRows] = useState<Record<string, string>[]>([]);
-  const [startIndex, setStartIndex] = useState<number | null>(null);
-  const [endIndex, setEndIndex] = useState<number | null>(null);
+  const [startIndex, setStartIndex] = useState<number | null>(1);
+  const [endIndex, setEndIndex] = useState<number | null>(5);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [selectionMode, setSelectionMode] = useState<
+    "selected" | "range" | "bulk"
+  >("bulk");
+
+  console.log("this is selected row keys", selectedRowKeys);
 
   useEffect(() => {
     fetchCsvs();
   }, []);
+
+  // Sync selectedCsv with updated metadata from csvs list
+  useEffect(() => {
+    if (selectedCsv) {
+      const updated = csvs.find((c) => c._id === selectedCsv._id);
+      if (updated) {
+        setSelectedCsv(updated);
+      }
+    }
+  }, [csvs, selectedCsv]);
 
   const fetchCsvs = async () => {
     try {
@@ -91,8 +108,9 @@ const PreviewCsv = () => {
     setPreviewHeaders([]);
     setSelectedRowKeys([]);
     setSelectedRows([]);
-    setStartIndex(null);
-    setEndIndex(null);
+    setStartIndex(1);
+    setEndIndex(5); // Default as per user's preference
+    setSelectionMode("bulk");
 
     try {
       // Fetch and parse CSV content from the stored URL
@@ -130,17 +148,21 @@ const PreviewCsv = () => {
     setSelectedRows([]);
     setStartIndex(null);
     setEndIndex(null);
+    setSelectionMode("bulk");
   };
 
-  const idIndex = previewHeaders.findIndex((h) => h.toLowerCase() === "id");
-
   // Transform data rows into objects for the table
-  const previewTableData = previewData.map((row, rowIndex) => {
-    const key = idIndex !== -1 ? row[idIndex] : String(rowIndex);
-    const rowObj: Record<string, string> = { key };
+  const previewTableData = previewData.map((row) => {
+    const rowObj: Record<string, string> = {};
+
     row.forEach((cell, cellIndex) => {
-      rowObj[`col_${cellIndex}`] = cell;
+      rowObj[previewHeaders[cellIndex]] = cell;
     });
+
+    // Find "id" column case-insensitively for the key or use the first column as per user's latest change
+    const key = rowObj[previewHeaders[0]];
+
+    rowObj.key = key;
     return rowObj;
   });
 
@@ -149,12 +171,12 @@ const PreviewCsv = () => {
     if (selectedRowKeys.length === previewData.length) {
       setSelectedRowKeys([]);
       setSelectedRows([]);
+      setSelectionMode("bulk");
     } else {
-      const keys = previewData.map((row, rowIndex) =>
-        idIndex !== -1 ? row[idIndex] : String(rowIndex)
-      );
+      const keys = previewTableData.map((row) => row.key);
       setSelectedRowKeys(keys);
       setSelectedRows(previewTableData);
+      setSelectionMode("selected");
     }
   };
 
@@ -164,102 +186,109 @@ const PreviewCsv = () => {
       const start = startIndex - 1; // preview data is 0 index based
       const end = endIndex - 1;
 
-      if (start <= end) {
+      if (start <= end && start >= 0 && end < previewTableData.length) {
         const keys: React.Key[] = [];
         const rows: Record<string, string>[] = [];
         for (let i = start; i <= end; i++) {
-          const key = idIndex !== -1 ? previewData[i][idIndex] : String(i);
-          keys.push(key);
-          rows.push(previewTableData[i]);
+          const row = previewTableData[i];
+          keys.push(row.key);
+          rows.push(row);
         }
         setSelectedRowKeys(keys);
         setSelectedRows(rows);
+        setSelectionMode("range");
       } else {
-        message.error("Start index must be less than or equal to end index");
+        message.error("Invalid range indices");
       }
     }
   };
 
-  const handleDeleteRow = (key: string) => {
-    const newData = previewData.filter((row, rowIndex) => {
-      const rowKey = idIndex !== -1 ? row[idIndex] : String(rowIndex);
-      return rowKey !== key;
-    });
-    setPreviewData(newData);
-    setSelectedRowKeys(selectedRowKeys.filter((k) => k !== key));
-    message.success("Row removed from preview");
-  };
+  // const handleDeleteRow = (key: string) => {
+  //   const indexToDelete = previewTableData.findIndex((row) => row.key === key);
+  //   if (indexToDelete !== -1) {
+  //     const newData = previewData.filter((_, index) => index !== indexToDelete);
+  //     setPreviewData(newData);
+  //     setSelectedRowKeys(selectedRowKeys.filter((k) => k !== key));
+  //     // Reset mode if empty or just keep multi
+  //     if (selectedRowKeys.length <= 1) setSelectionMode("bulk");
+  //     message.success("Row removed from preview");
+  //   }
+  // };
 
   const [resendingKey, setResendingKey] = useState<string | null>(null);
 
-  const handleSingleSend = async (key: string) => {
-    if (!emailSubject || !emailHtml) {
-      message.warning(
-        "Please provide an email subject and content in the Dashboard first."
-      );
-      return;
+  const executeEmailSend = async (params: {
+    mode: "selected" | "range" | "bulk";
+    rowIds?: string[];
+    range?: { start: number; end: number };
+  }) => {
+    if (params.mode === "selected" && params.rowIds?.length === 1) {
+      setResendingKey(params.rowIds[0]);
+    } else {
+      setSendingEmail(true);
     }
 
-    setResendingKey(key);
     try {
       const payload = {
         csvId: selectedCsv?._id,
         subject: emailSubject,
         html: emailHtml,
-        selectedRows: [key],
+        ...params,
       };
 
+      if (params.mode === "range" && params.range) {
+        message.info(
+          `Sending emails to rows ${params.range.start} to ${params.range.end}.`
+        );
+      } else if (params.mode === "selected" && params.rowIds) {
+        if (params.rowIds.length > 1) {
+          message.info(
+            `Sending emails to ${params.rowIds.length} selected rows.`
+          );
+        }
+      } else {
+        message.info("Sending emails to all rows in the CSV.");
+      }
+
       await axios.post("/send-email", payload);
-      message.success("Email sent successfully!");
+      message.success("Email process started successfully!");
+      fetchCsvs();
     } catch (err) {
-      console.error("Error sending single email:", err);
+      console.error("Error sending email:", err);
       message.error("Failed to send email");
     } finally {
       setResendingKey(null);
+      setSendingEmail(false);
     }
+  };
+
+  const handleSingleSend = async (key: string) => {
+    await executeEmailSend({ mode: "selected", rowIds: [key] });
   };
 
   const emailSubject = useUserStore((state) => state.emailSubject);
   const emailHtml = useUserStore((state) => state.emailHtml);
 
-  // Handle send email
+  // Handle send email (Bulk/Range/Multi)
   const handleSendEmail = async () => {
-    if (!emailSubject || !emailHtml) {
-      message.warning(
-        "Please provide an email subject and content in the Dashboard first."
-      );
-      return;
-    }
-
-    setSendingEmail(true);
-    try {
-      const payload: {
-        csvId: string | undefined;
-        subject: string;
-        html: string;
-        selectedRows?: React.Key[];
-      } = {
-        csvId: selectedCsv?._id,
-        subject: emailSubject,
-        html: emailHtml,
-      };
-
-      if (selectedRowKeys.length > 0) {
-        payload.selectedRows = selectedRowKeys;
+    if (selectedRowKeys.length > 0) {
+      if (
+        selectionMode === "range" &&
+        startIndex !== null &&
+        endIndex !== null
+      ) {
+        await executeEmailSend({
+          mode: "range",
+          range: { start: startIndex, end: endIndex },
+        });
       } else {
-        // If no specific rows are selected, the backend should process all rows for the given csvId.
-        // No 'selectedRows' parameter is sent in this case.
-        message.info("Sending emails to all rows in the CSV.");
+        await executeEmailSend({
+          mode: "selected",
+          rowIds: selectedRowKeys.map((k) => String(k)),
+        });
       }
-
-      const response = await axios.post("/send-email", payload);
-      message.success("Emails sent successfully!");
-      console.log("Send email response:", response.data);
-    } catch (err) {
-      console.error("Error sending emails:", err);
-      message.error("Failed to send emails");
-    } finally {
-      setSendingEmail(false);
+    } else {
+      await executeEmailSend({ mode: "bulk" });
     }
   };
 
@@ -273,18 +302,19 @@ const PreviewCsv = () => {
     ) => {
       setSelectedRowKeys(newSelectedRowKeys);
       setSelectedRows(newSelectedRows);
+      setSelectionMode(newSelectedRowKeys.length > 0 ? "selected" : "bulk");
     },
   };
 
   const previewColumns: ColumnsType<Record<string, string>> = [
     ...previewHeaders
-      .map((header, index) => ({
+      .filter((header) => header.toLowerCase() !== "id")
+      .map((header) => ({
         title: header,
-        dataIndex: `col_${index}`,
-        key: `col_${index}`,
+        dataIndex: header,
+        key: header,
         ellipsis: true,
-      }))
-      .filter((col) => col.title.toLowerCase() !== "id"),
+      })),
     {
       title: "Actions",
       key: "actions",
@@ -292,26 +322,48 @@ const PreviewCsv = () => {
       width: 250,
       render: (_, record: Record<string, string>) => {
         const key = record.key;
-        // Check if there's a status column that indicates failure
-        const hasFailed = Object.entries(record).some(
-          ([k, v]) =>
-            k.includes("col_") &&
-            typeof v === "string" &&
-            (v.toLowerCase().includes("failed") ||
-              v.toLowerCase().includes("error"))
+        // Check persistent IDs from the selectedCsv metadata
+        const isSentPersistent = selectedCsv?.sentEmailRowIds?.includes(key);
+        const isFailedPersistent =
+          selectedCsv?.failedEmailRowIds?.includes(key);
+
+        // Get status value from the record if status column exists (fallback)
+        let csvStatus = "";
+        const statusColumn = previewHeaders.find(
+          (h) => h.toLowerCase() === "status"
         );
+        if (statusColumn) {
+          csvStatus = record[statusColumn]?.toLowerCase() || "";
+        }
+
+        const isSent = isSentPersistent || csvStatus === "sent";
+        const isFailed =
+          isFailedPersistent || csvStatus === "failed" || csvStatus === "error";
 
         return (
           <Space size="small">
-            <Tooltip title="Resend Email">
-              <Button
-                size="small"
-                icon={<SendOutlined />}
-                onClick={() => handleSingleSend(key)}
-                loading={resendingKey === key}
-              />
-            </Tooltip>
-            {hasFailed && (
+            {!isSent && !isFailed && (
+              <Tooltip title="Send Email">
+                <Button
+                  size="small"
+                  type="primary"
+                  icon={<MailOutlined />}
+                  onClick={() => handleSingleSend(key)}
+                  loading={resendingKey === key}
+                />
+              </Tooltip>
+            )}
+            {isSent && (
+              <Tooltip title="Resend Email">
+                <Button
+                  size="small"
+                  icon={<SendOutlined />}
+                  onClick={() => handleSingleSend(key)}
+                  loading={resendingKey === key}
+                />
+              </Tooltip>
+            )}
+            {isFailed && (
               <Tooltip title="Retry Failed Email">
                 <Button
                   size="small"
@@ -323,14 +375,14 @@ const PreviewCsv = () => {
                 />
               </Tooltip>
             )}
-            <Tooltip title="Delete Row">
+            {/* <Tooltip title="Delete Row">
               <Button
                 size="small"
                 danger
                 icon={<DeleteOutlined />}
                 onClick={() => handleDeleteRow(key)}
               />
-            </Tooltip>
+            </Tooltip> */}
           </Space>
         );
       },
@@ -491,7 +543,6 @@ const PreviewCsv = () => {
                     max={previewData.length}
                     value={startIndex}
                     onChange={(value) => setStartIndex(value)}
-                    placeholder="1"
                     style={{ width: 80 }}
                   />
                 </Space>
@@ -503,7 +554,6 @@ const PreviewCsv = () => {
                     max={previewData.length}
                     value={endIndex}
                     onChange={(value) => setEndIndex(value)}
-                    placeholder={String(previewData.length)}
                     style={{ width: 80 }}
                   />
                 </Space>

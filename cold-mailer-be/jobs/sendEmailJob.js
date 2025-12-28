@@ -7,12 +7,12 @@ const logger = createLogger("SendEmailJob");
 /**
  * Sends a single email using the provided transporter.
  */
-async function sendSingleEmail(transporter, row, from) {
+async function sendSingleEmail(transporter, row, from, subject, html) {
   const mailOptions = {
     from,
     to: row.email,
-    subject: "Test Email from Cold Mailer",
-    text: `Hello ${row.name || "there"}, this is a test email!`,
+    subject: subject || "Test Email from Cold Mailer",
+    html: html || `Hello ${row.name || "there"}, this is a test email!`,
   };
 
   try {
@@ -38,6 +38,8 @@ export async function sendEmailJob({
   transporter,
   batchSize = 5,
   email,
+  subject,
+  html,
   onBatchProcessed,
 }) {
   const csvId = csv._id;
@@ -46,47 +48,71 @@ export async function sendEmailJob({
 
   // Initialize state from existing CSV record
   let totalSentCount = csv.sent || 0;
-  let currentFailedEmails = [...(csv.failedEmailsRowId || [])];
-  const startFrom = csv.startIndex || 0;
+  let currentSentRowIds = [...(csv.sentEmailRowIds || [])];
+  let currentFailedRowIds = [...(csv.failedEmailRowIds || [])];
+  const startFrom = 0; // Always start from beginning of provided data since it's already filtered
 
   logger.info(`Starting email job`, {
     csvId,
     totalRows: csvData.length,
-    startIndex: startFrom,
     batchSize,
   });
 
-  for (let i = startFrom; i < csvData.length; i += batchSize) {
+  for (let i = 0; i < csvData.length; i += batchSize) {
     const batch = csvData.slice(i, i + batchSize);
 
     // Process batch in parallel
     const results = await Promise.all(
-      batch.map((row) => sendSingleEmail(transporter, row, senderEmail))
+      batch.map(async (row) => {
+        const result = await sendSingleEmail(
+          transporter,
+          row,
+          senderEmail,
+          subject,
+          html
+        );
+        return { ...result, rowId: row.id };
+      })
     );
 
     // Analyze results
-    const failedThisBatch = results
+    const batchSentIds = results.filter((r) => r.success).map((r) => r.rowId);
+    const batchFailedIds = results
       .filter((r) => !r.success)
-      .map((r) => r.email);
-
-    const successCountThisBatch = batch.length - failedThisBatch.length;
-    const failedCountThisBatch = failedThisBatch.length;
+      .map((r) => r.rowId);
 
     // Update state
-    totalSentCount += successCountThisBatch;
-    currentFailedEmails.push(...failedThisBatch);
+    const sentSet = new Set(currentSentRowIds);
+    const failedSet = new Set(currentFailedRowIds);
+
+    batchSentIds.forEach((id) => {
+      sentSet.add(id);
+      failedSet.delete(id); // If it succeeded, it's no longer failed
+    });
+    batchFailedIds.forEach((id) => {
+      if (!sentSet.has(id)) {
+        failedSet.add(id); // Only add to failed if not already sent successfully
+      }
+    });
+
+    currentSentRowIds = Array.from(sentSet);
+    currentFailedRowIds = Array.from(failedSet);
+    totalSentCount = currentSentRowIds.length;
+
     const currentEndIndex = i + batch.length - 1;
 
     // Persist progress
     await Promise.all([
       Csv.findByIdAndUpdate(csvId, {
         sent: totalSentCount,
+        sentEmailRowIds: currentSentRowIds,
+        failedEmailRowIds: currentFailedRowIds,
+        // we'll keep startIndex/endIndex for legacy UI if needed but it's less relevant now
         startIndex: i,
         endIndex: currentEndIndex,
-        failedEmailsRowId: currentFailedEmails,
       }),
       User.findByIdAndUpdate(userId, {
-        $inc: { "stats.totalEmailsSent": successCountThisBatch },
+        $inc: { "stats.totalEmailsSent": batchSentIds.length },
       }),
     ]);
 
@@ -94,12 +120,10 @@ export async function sendEmailJob({
     const batchStatus = {
       message: `Batch ${Math.floor(i / batchSize) + 1} processed`,
       totalSent: totalSentCount,
-      sentCount: totalSentCount, // For backward compatibility
-      batchSent: successCountThisBatch,
-      batchFailed: failedCountThisBatch,
-      startIndex: i,
-      endIndex: currentEndIndex,
-      failedEmailsRowId: [...currentFailedEmails],
+      batchSent: batchSentIds.length,
+      batchFailed: batchFailedIds.length,
+      sentEmailRowIds: [...currentSentRowIds],
+      failedEmailRowIds: [...currentFailedRowIds],
     };
 
     // Report progress

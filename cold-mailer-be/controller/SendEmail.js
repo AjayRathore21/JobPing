@@ -55,8 +55,56 @@ const sendEmail = async (req, res) => {
 
     const csvData = await loadCsvFromCloudinary(csv.url);
 
-    logger.info("CSV data loaded successfully", {
-      rowCount: csvData.length,
+    const { mode, rowIds, range, subject, html } = req.body || {};
+    let rowsToProcess = csvData;
+
+    logger.info("Processing email request", {
+      mode,
+      csvId,
+      correlationId,
+    });
+
+    if (mode === "selected" || mode === "multi") {
+      if (Array.isArray(rowIds)) {
+        rowsToProcess = csvData.filter((row) => rowIds.includes(row.id));
+        logger.debug("Filtered for specific rows", {
+          rowIdsCount: rowIds.length,
+          actualCount: rowsToProcess.length,
+        });
+      }
+    } else if (
+      mode === "range" &&
+      range &&
+      typeof range.start === "number" &&
+      typeof range.end === "number"
+    ) {
+      // 1-based indexing from frontend
+      const start = Math.max(0, range.start - 1);
+      const end = range.end;
+      rowsToProcess = csvData.slice(start, end);
+      logger.debug("Filtered for range", {
+        start,
+        end,
+        count: rowsToProcess.length,
+      });
+    } else {
+      // Default to bulk or explicitly requested bulk
+      logger.debug("Processing in bulk mode", { totalRows: csvData.length });
+    }
+
+    if (rowsToProcess.length === 0) {
+      logger.warn("No rows to process after filtering", {
+        mode,
+        csvId,
+        correlationId,
+      });
+      return res
+        .status(400)
+        .json({ error: "No matching rows found to process" });
+    }
+
+    logger.info("Email processing starting", {
+      rowCount: rowsToProcess.length,
       csvId,
       correlationId,
     });
@@ -76,10 +124,12 @@ const sendEmail = async (req, res) => {
 
     // Process email job with batch callback
     await sendEmailJob({
-      csvData,
+      csvData: rowsToProcess,
       csv,
       user,
       transporter,
+      subject,
+      html,
       batchSize,
       email,
       onBatchProcessed: (batchStatus) => {

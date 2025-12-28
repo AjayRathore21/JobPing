@@ -15,7 +15,8 @@ const csvUploadSchema = new mongoose.Schema({
   startIndex: { type: Number, default: 0 },
   endIndex: { type: Number, default: 0 },
   sent: { type: Number, default: 0 },
-  failedEmailsRowIdRowId: { type: [String], default: [] },
+  sentEmailRowIds: { type: [String], default: [] },
+  failedEmailRowIds: { type: [String], default: [] },
   uploadedAt: { type: Date, default: Date.now },
 });
 
