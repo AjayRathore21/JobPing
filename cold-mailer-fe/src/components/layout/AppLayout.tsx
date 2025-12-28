@@ -88,7 +88,7 @@ const AppLayout: React.FC = () => {
             >
               <div className="user-profile" style={{ cursor: "pointer" }}>
                 <span>{user?.name || user?.email || "User"}</span>
-                <Avatar icon={<UserOutlined />} />
+                <Avatar src={user?.picture} icon={<UserOutlined />} />
               </div>
             </Dropdown>
           </div>

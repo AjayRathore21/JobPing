@@ -43,6 +43,7 @@ export default function configurePassport(passport) {
           const email = profile.emails?.[0]?.value;
           const googleId = profile.id;
           const name = profile.displayName || email?.split("@")[0] || "User";
+          const picture = profile.photos?.[0]?.value;
 
           console.log("Google OAuth callback:@@@", profile);
 
@@ -59,6 +60,7 @@ export default function configurePassport(passport) {
               user.gmailRefreshToken = refreshToken;
             }
             user.gmailTokenExpiry = new Date(Date.now() + 3600 * 1000); // 1 hour from now
+            user.picture = picture;
             await user.save();
           } else {
             // Create new user
@@ -69,6 +71,7 @@ export default function configurePassport(passport) {
               gmailAccessToken: accessToken,
               gmailRefreshToken: refreshToken,
               gmailTokenExpiry: new Date(Date.now() + 3600 * 1000),
+              picture,
             });
           }
 
