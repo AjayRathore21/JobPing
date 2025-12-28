@@ -1,0 +1,12 @@
+.row-sent td {
+    background-color: #d9f7be !important;
+}
+
+.row-failed td {
+    background-color: #fff1f0 !important;
+}
+
+.row-sent:hover td,
+.row-failed:hover td {
+    filter: brightness(0.95) !important;
+}
