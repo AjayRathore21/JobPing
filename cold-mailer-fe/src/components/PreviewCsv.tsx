@@ -23,6 +23,7 @@ import type { ColumnsType } from "antd/es/table";
 import axios from "../configs/axiosConfig";
 import Papa from "papaparse";
 import { useUserStore } from "../store/userStore";
+import "./PreviewCsv.scss";
 
 const { Title, Text } = Typography;
 
@@ -60,6 +61,16 @@ const PreviewCsv = () => {
   >("bulk");
 
   console.log("this is selected row keys", selectedRowKeys);
+
+  const getRowStatus = (record: Record<string, string>) => {
+    const key = record.key;
+    const isSentPersistent = selectedCsv?.sentEmailRowIds?.includes(key);
+    const isFailedPersistent = selectedCsv?.failedEmailRowIds?.includes(key);
+
+    const isSent = isSentPersistent;
+    const isFailed = isFailedPersistent;
+    return { isSent, isFailed };
+  };
 
   useEffect(() => {
     fetchCsvs();
@@ -322,23 +333,7 @@ const PreviewCsv = () => {
       width: 250,
       render: (_, record: Record<string, string>) => {
         const key = record.key;
-        // Check persistent IDs from the selectedCsv metadata
-        const isSentPersistent = selectedCsv?.sentEmailRowIds?.includes(key);
-        const isFailedPersistent =
-          selectedCsv?.failedEmailRowIds?.includes(key);
-
-        // Get status value from the record if status column exists (fallback)
-        let csvStatus = "";
-        const statusColumn = previewHeaders.find(
-          (h) => h.toLowerCase() === "status"
-        );
-        if (statusColumn) {
-          csvStatus = record[statusColumn]?.toLowerCase() || "";
-        }
-
-        const isSent = isSentPersistent || csvStatus === "sent";
-        const isFailed =
-          isFailedPersistent || csvStatus === "failed" || csvStatus === "error";
+        const { isSent, isFailed } = getRowStatus(record);
 
         return (
           <Space size="small">
@@ -576,6 +571,12 @@ const PreviewCsv = () => {
               pagination={{ pageSize: 10 }}
               scroll={{ x: true }}
               size="small"
+              rowClassName={(record) => {
+                const { isSent, isFailed } = getRowStatus(record);
+                if (isSent) return "row-sent";
+                if (isFailed) return "row-failed";
+                return "";
+              }}
             />
           </>
         ) : (
