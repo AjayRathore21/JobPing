@@ -7,8 +7,36 @@ import AnalyticsPage from "./pages/analytics/AnalyticsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import OAuthCallback from "./components/OAuthCallback";
 import AppLayout from "./components/layout/AppLayout";
+import { useEffect } from "react";
+import axios from "./configs/axiosConfig";
+import { useUserStore } from "./store/userStore";
 
 function App() {
+  const setUser = useUserStore((state) => state.setUser);
+  const clearUser = useUserStore((state) => state.clearUser);
+
+  useEffect(() => {
+    const validateSession = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const response = await axios.get("/auth/me");
+          if (response.data?.user) {
+            setUser(response.data.user);
+          }
+        } catch (error) {
+          console.error("Session validation failed:", error);
+          // Only clear if it's an auth error (401/403)
+          // For now, let's be safe and clear on any error that prevents getting the user
+          localStorage.removeItem("token");
+          clearUser();
+        }
+      }
+    };
+
+    validateSession();
+  }, [setUser, clearUser]);
+
   return (
     <Routes>
       {/* Protected routes - add new protected routes here */}

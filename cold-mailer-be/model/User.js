@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
     gmailRefreshToken: { type: String },
     gmailAccessToken: { type: String },
     gmailTokenExpiry: { type: Date },
+    picture: { type: String },
 
     name: {
       type: String,

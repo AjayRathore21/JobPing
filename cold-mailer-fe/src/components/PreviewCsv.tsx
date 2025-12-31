@@ -440,7 +440,7 @@ const PreviewCsv = () => {
     },
   ];
 
-  if (loading) {
+  if (loading && csvs.length === 0) {
     return (
       <div style={{ textAlign: "center", padding: "40px" }}>
         <Spin size="large" />
@@ -458,6 +458,7 @@ const PreviewCsv = () => {
         dataSource={csvs}
         columns={columns}
         rowKey="_id"
+        loading={loading}
         locale={{ emptyText: "No CSV files uploaded yet" }}
         pagination={{ pageSize: 10 }}
         className="custom-table"
@@ -465,6 +466,7 @@ const PreviewCsv = () => {
       />
 
       <Modal
+        key={selectedCsv?._id}
         title={
           <div style={{ padding: "16px 0" }}>
             <Title level={4} style={{ margin: 0 }}>
