@@ -4,7 +4,7 @@ useDotenv: true
 provider:
   name: aws
   runtime: nodejs20.x
-  region: us-east-1 # Change to your preferred region
+  region: eu-north-1
   stage: prod
   environment:
     NODE_ENV: production
