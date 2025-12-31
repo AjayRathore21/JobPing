@@ -4,7 +4,7 @@ const serverlessConfig = {
   provider: {
     name: "aws",
     runtime: "nodejs20.x",
-    region: "eu-north-1",
+    region: "ap-south-1",
     stage: "prod",
     environment: {
       NODE_ENV: "production",
