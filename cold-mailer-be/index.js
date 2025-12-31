@@ -1,5 +1,6 @@
-import "dotenv/config"; // Must be first - loads env vars before other imports
+import "dotenv/config";
 import express from "express";
+import mongoose from "mongoose";
 import connectDB from "./model/db.js";
 import routes from "./routes/index.js";
 import cors from "cors";
@@ -75,26 +76,26 @@ server.use((err, req, res, next) => {
 });
 
 // ============================================
-// Database Connection
+// Database Connection & Lambda Initialization
 // ============================================
-connectDB();
-
-// ============================================
-// Server Startup (Only if not running in Lambda)
-// ============================================
-if (process.env.NODE_ENV !== "production" || !process.env.LAMBDA_TASK_ROOT) {
-  const port = process.env.PORT || 3000;
-  server.listen(port, () => {
-    logger.info("🚀 Server started successfully", {
-      context: "Startup",
-      port,
-      environment: process.env.NODE_ENV || "development",
-    });
-  });
-}
+const init = async () => {
+  if (!process.env.MONGODB_URI) {
+    logger.error(
+      "CRITICAL: MONGODB_URI is not defined in environment variables"
+    );
+  } else {
+    logger.info("Initializing database connection...");
+    await connectDB();
+  }
+};
 
 // ============================================
 // Export for Serverless
 // ============================================
-export const handler = serverless(server);
+export const handler = serverless(server, {
+  async onRequest(req) {
+    // Ensure DB is connected on every request (reuses connection if already open)
+    await connectDB();
+  },
+});
 export default server;

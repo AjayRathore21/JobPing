@@ -19,6 +19,7 @@ const serverlessConfig = {
     api: {
       name: "jobping",
       handler: "index.handler",
+      timeout: 29,
       events: [
         {
           http: {
