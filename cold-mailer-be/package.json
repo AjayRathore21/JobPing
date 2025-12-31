@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx nodemon --legacy-watch index.js"
+    "dev": "npx nodemon --legacy-watch index.js",
+    "sls": "serverless offline"
   },
   "author": "ajay",
   "license": "ISC",
@@ -30,11 +31,15 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
+    "serverless-http": "^4.0.0",
     "uuid": "^13.0.0",
     "winston": "^3.18.3"
   },
   "devDependencies": {
     "i": "^0.3.7",
-    "npm": "^11.6.2"
+    "npm": "^11.6.2",
+    "serverless": "^3.40.0",
+    "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-offline": "^12.0.4"
   }
 }

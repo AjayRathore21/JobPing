@@ -216,10 +216,11 @@ transports.push(
   })
 );
 
-// File transports - enabled in production or when LOG_TO_FILE is set
+// File transports - enabled in production or when LOG_TO_FILE is set, but ONLY if not in Lambda
 if (
-  process.env.NODE_ENV === "production" ||
-  process.env.LOG_TO_FILE === "true"
+  (process.env.NODE_ENV === "production" ||
+    process.env.LOG_TO_FILE === "true") &&
+  !process.env.LAMBDA_TASK_ROOT
 ) {
   // Error logs only
   transports.push(

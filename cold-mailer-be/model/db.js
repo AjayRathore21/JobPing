@@ -1,18 +1,23 @@
 import mongoose from "mongoose";
 
-console.log("MongoDB URI:", process.env.MONGODB_URI); // Debugging line
+let isConnected = false;
 
 const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+  if (isConnected) {
+    console.log("=> Using existing database connection");
+    return;
+  }
 
+  try {
+    const db = await mongoose.connect(process.env.MONGODB_URI);
+
+    isConnected = db.connections[0].readyState;
     console.log("✅ MongoDB connected successfully!");
   } catch (error) {
     console.error("❌ MongoDB connection failed:", error.message);
-    process.exit(1); // stop the app if DB fails
+    // In Lambda, we shouldn't обязательно process.exit(1),
+    // but throwing the error will help with retries
+    throw error;
   }
 };
 

@@ -7,11 +7,11 @@ import passport from "passport";
 import cookieParser from "cookie-parser";
 import configurePassport from "./configs/passportConfig.js";
 import logger from "./utils/logger.js";
+import serverless from "serverless-http";
 import {
   requestLoggerMiddleware,
   errorLoggerMiddleware,
 } from "./middleware/requestLogger.js";
-
 
 const server = express();
 const port = process.env.PORT || 3000;
@@ -80,51 +80,21 @@ server.use((err, req, res, next) => {
 connectDB();
 
 // ============================================
-// Server Startup
+// Server Startup (Only if not running in Lambda)
 // ============================================
-const startServer = () => {
+if (process.env.NODE_ENV !== "production" || !process.env.LAMBDA_TASK_ROOT) {
+  const port = process.env.PORT || 3000;
   server.listen(port, () => {
     logger.info("🚀 Server started successfully", {
       context: "Startup",
       port,
       environment: process.env.NODE_ENV || "development",
-      nodeVersion: process.version,
-      pid: process.pid,
     });
-
-    // Log configuration summary (development only)
-    if (process.env.NODE_ENV !== "production") {
-      logger.debug("Server configuration", {
-        context: "Startup",
-        logLevel: process.env.LOG_LEVEL || "debug",
-        cors: "enabled",
-        authentication: "passport-jwt + google-oauth",
-      });
-    }
   });
-};
+}
 
 // ============================================
-// Graceful Shutdown
+// Export for Serverless
 // ============================================
-const gracefulShutdown = (signal) => {
-  logger.info(`${signal} received. Starting graceful shutdown...`, {
-    context: "Shutdown",
-  });
-
-  server.close(() => {
-    logger.info("HTTP server closed", { context: "Shutdown" });
-    process.exit(0);
-  });
-
-  // Force close after 30 seconds
-  setTimeout(() => {
-    logger.error("Forced shutdown due to timeout", { context: "Shutdown" });
-    process.exit(1);
-  }, 30000);
-};
-
-process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-process.on("SIGINT", () => gracefulShutdown("SIGINT"));
-
-startServer();
+export const handler = serverless(server);
+export default server;
