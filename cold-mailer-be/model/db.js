@@ -2,21 +2,33 @@ import mongoose from "mongoose";
 
 let isConnected = false;
 
+// Disable buffering so that commands fail immediately if not connected
+// This prevents the "Operation buffering timed out" errors in Lambda
+mongoose.set("bufferCommands", false);
+
 const connectDB = async () => {
-  if (isConnected) {
+  if (isConnected && mongoose.connection.readyState === 1) {
     console.log("=> Using existing database connection");
     return;
   }
 
-  try {
-    const db = await mongoose.connect(process.env.MONGODB_URI);
+  console.log("=> Creating new database connection...");
 
-    isConnected = db.connections[0].readyState;
+  if (!process.env.MONGODB_URI) {
+    throw new Error("MONGODB_URI is missing from environment variables");
+  }
+
+  try {
+    const db = await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000, // Fail fast (5s) instead of waiting 30s
+      socketTimeoutMS: 45000,
+    });
+
+    isConnected = db.connections[0].readyState === 1;
     console.log("✅ MongoDB connected successfully!");
   } catch (error) {
     console.error("❌ MongoDB connection failed:", error.message);
-    // In Lambda, we shouldn't обязательно process.exit(1),
-    // but throwing the error will help with retries
+    isConnected = false;
     throw error;
   }
 };

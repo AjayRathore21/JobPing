@@ -15,7 +15,25 @@ import {
 } from "./middleware/requestLogger.js";
 
 const server = express();
-const port = process.env.PORT || 3000;
+
+// ============================================
+// Database Connection Middleware
+// Ensures DB is connected before ANY request proceeds
+// ============================================
+server.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error(
+      "CRITICAL: Database connection failed at middleware level:",
+      err.message
+    );
+    res
+      .status(503)
+      .json({ error: "Database starting up... please refresh in a moment." });
+  }
+});
 
 // ============================================
 // STAGE 0: Diagnostic & Super-Early Health Check
