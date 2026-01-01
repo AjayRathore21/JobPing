@@ -18,6 +18,31 @@ const server = express();
 const port = process.env.PORT || 3000;
 
 // ============================================
+// STAGE 0: Diagnostic & Super-Early Health Check
+// (Bypasses all other middleware to verify environment)
+// ============================================
+server.get("/diagnostic", (req, res) => {
+  res.status(200).json({
+    message: "App is alive",
+    env: {
+      has_db_url: !!process.env.MONGODB_URI,
+      has_google_id: !!process.env.GOOGLE_CLIENT_ID,
+      has_google_secret: !!process.env.GOOGLE_CLIENT_SECRET,
+      has_jwt_secret: !!process.env.JWT_SECRET_KEY,
+      google_callback_url: process.env.GOOGLE_CALLBACK_URL,
+      region: process.env.AWS_REGION || "local",
+    },
+    warnings: {
+      is_callback_http:
+        process.env.GOOGLE_CALLBACK_URL?.startsWith("http://") &&
+        !process.env.GOOGLE_CALLBACK_URL?.includes("localhost"),
+      id_has_spaces:
+        process.env.GOOGLE_CLIENT_ID !== process.env.GOOGLE_CLIENT_ID?.trim(),
+    },
+  });
+});
+
+// ============================================
 // Core Middleware
 // ============================================
 server.use(express.json());

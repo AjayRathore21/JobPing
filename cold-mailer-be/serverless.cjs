@@ -11,9 +11,10 @@ const serverlessConfig = {
       MONGODB_URI: "${env:MONGODB_URI, ''}",
       GOOGLE_CLIENT_ID: "${env:GOOGLE_CLIENT_ID, ''}",
       GOOGLE_CLIENT_SECRET: "${env:GOOGLE_CLIENT_SECRET, ''}",
-      SESSION_SECRET: "${env:SESSION_SECRET, 'default_secret'}",
-      JWT_SECRET_KEY: "${env:SESSION_SECRET, 'default_secret'}",
+      SESSION_SECRET: "${env:SESSION_SECRET, 'default_session_secret'}",
+      JWT_SECRET_KEY: "${env:JWT_SECRET_KEY, 'default_jwt_secret'}",
       CLIENT_URL: "${env:CLIENT_URL, 'http://localhost:3000'}",
+      FRONTEND_URL: "${env:FRONTEND_URL, 'http://localhost:5173'}",
       GOOGLE_CALLBACK_URL:
         "${env:GOOGLE_CALLBACK_URL, 'http://localhost:5100/auth/google/callback'}",
     },
