@@ -382,6 +382,31 @@ const PreviewCsv = () => {
         );
       },
     },
+    {
+      title: "Status",
+      key: "status",
+      fixed: "right",
+      width: 100,
+      render: (_, record: Record<string, string>) => {
+        const user = useUserStore.getState().user;
+        const opened = user?.openedEmails?.find(
+          (oe) =>
+            oe.csvId === selectedCsv?._id &&
+            String(oe.rowId) === String(record.key)
+        );
+
+        if (opened) {
+          return (
+            <Tooltip
+              title={`Opened at: ${new Date(opened.openedAt).toLocaleString()}`}
+            >
+              <EyeOutlined style={{ color: "#52c41a", fontSize: "18px" }} />
+            </Tooltip>
+          );
+        }
+        return null;
+      },
+    },
   ];
 
   const columns: ColumnsType<CsvRecord> = [

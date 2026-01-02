@@ -64,6 +64,15 @@ const userSchema = new mongoose.Schema(
 
     // Store uploaded CSV file references
     uploadedFiles: [{ type: mongoose.Schema.Types.ObjectId, ref: "Csv" }],
+
+    // Tracking for opened emails
+    openedEmails: [
+      {
+        csvId: { type: mongoose.Schema.Types.ObjectId, ref: "Csv" },
+        rowId: { type: String },
+        openedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );
