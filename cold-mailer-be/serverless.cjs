@@ -8,6 +8,7 @@ const serverlessConfig = {
     stage: "prod",
     environment: {
       NODE_ENV: "production",
+      BACKEND_URL: "${env:BACKEND_URL}",
       MONGODB_URI: "${env:MONGODB_URI, ''}",
       GOOGLE_CLIENT_ID: "${env:GOOGLE_CLIENT_ID, ''}",
       GOOGLE_CLIENT_SECRET: "${env:GOOGLE_CLIENT_SECRET, ''}",

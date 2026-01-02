@@ -16,11 +16,7 @@ async function sendSingleEmail(
   userId,
   csvId
 ) {
-  const baseUrl =
-    process.env.BACKEND_URL ||
-    (process.env.GOOGLE_CALLBACK_URL
-      ? new URL(process.env.GOOGLE_CALLBACK_URL).origin
-      : "http://localhost:5000");
+  const baseUrl = process.env.BACKEND_URL;
 
   const trackingPixel = `<img src="${baseUrl}/track-email?userId=${userId}&csvId=${csvId}&rowId=${row.id}&recruiterEmail=${row.email}" width="1" height="1" style="display:none;" />`;
 
