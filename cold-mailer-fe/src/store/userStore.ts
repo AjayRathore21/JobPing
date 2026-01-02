@@ -9,6 +9,11 @@ interface UserInfo {
   gmailRefreshToken?: string;
   hasGmailAuth?: boolean;
   picture?: string;
+  openedEmails?: Array<{
+    csvId: string;
+    rowId: string;
+    openedAt: string;
+  }>;
   [key: string]: unknown;
 }
 

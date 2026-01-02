@@ -7,12 +7,30 @@ const logger = createLogger("SendEmailJob");
 /**
  * Sends a single email using the provided transporter.
  */
-async function sendSingleEmail(transporter, row, from, subject, html) {
+async function sendSingleEmail(
+  transporter,
+  row,
+  from,
+  subject,
+  html,
+  userId,
+  csvId
+) {
+  const baseUrl =
+    process.env.BACKEND_URL ||
+    (process.env.GOOGLE_CALLBACK_URL
+      ? new URL(process.env.GOOGLE_CALLBACK_URL).origin
+      : "http://localhost:5000");
+
+  const trackingPixel = `<img src="${baseUrl}/track-email?userId=${userId}&csvId=${csvId}&rowId=${row.id}&recruiterEmail=${row.email}" width="1" height="1" style="display:none;" />`;
+
   const mailOptions = {
     from,
     to: row.email,
     subject: subject || "Test Email from Cold Mailer",
-    html: html || `Hello ${row.name || "there"}, this is a test email!`,
+    html:
+      (html || `Hello ${row.name || "there"}, this is a test email!`) +
+      trackingPixel,
   };
 
   try {
@@ -69,7 +87,9 @@ export async function sendEmailJob({
           row,
           senderEmail,
           subject,
-          html
+          html,
+          userId,
+          csvId
         );
         return { ...result, rowId: row.id };
       })

@@ -1,4 +1,5 @@
 import Csv from "../model/Csv.js";
+import User from "../model/User.js";
 import { loadCsvFromCloudinary } from "../utils/helpers.js";
 import { sendEmailJob } from "../jobs/sendEmailJob.js";
 import { createGmailTransporter } from "../configs/mailService.js";
@@ -181,6 +182,72 @@ const sendEmail = async (req, res) => {
       duration: Date.now() - startTime,
     });
     res.status(500).json({ error: error.message });
+  }
+};
+
+export const trackEmail = async (req, res) => {
+  const { userId, csvId, rowId, recruiterEmail } = req.query;
+
+  try {
+    if (!userId || !csvId || !rowId) {
+      logger.warn("Tracking request missing parameters", {
+        userId,
+        csvId,
+        rowId,
+      });
+      return res.status(400).send("Missing parameters");
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      logger.warn("Tracking request: User not found", { userId });
+      return res.status(404).send("User not found");
+    }
+
+    // Check if already tracked to avoid duplicate notifications
+    const alreadyTracked = user.openedEmails.some(
+      (entry) => entry.csvId.toString() === csvId && entry.rowId === rowId
+    );
+
+    if (!alreadyTracked) {
+      user.openedEmails.push({ csvId, rowId });
+      user.stats.totalOpens = (user.stats.totalOpens || 0) + 1;
+      await user.save();
+
+      logger.info("Email open tracked", { userId, csvId, rowId });
+
+      // Send notification email to the user
+      try {
+        const transporter = await createGmailTransporter(user);
+        const mailOptions = {
+          from: "ajaykumar420.ak79@gmail.com",
+          to: user.email,
+          subject: "Your email has been opened!",
+          html: `<p>Hello ${user.name},</p><p>An email from your campaign (CSV ID: ${csvId}, Row ID: ${rowId}) has been opened by a recruiter (${recruiterEmail}).</p><p>Good luck!</p>`,
+        };
+        await transporter.sendMail(mailOptions);
+        logger.info("Notification email sent to user", { userId: user._id });
+      } catch (notifyError) {
+        logger.error("Failed to send notification email", {
+          userId: user._id,
+          error: notifyError.message,
+        });
+      }
+    }
+
+    // Return 1x1 transparent pixel
+    const pixel = Buffer.from(
+      "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+      "base64"
+    );
+    res.writeHead(200, {
+      "Content-Type": "image/gif",
+      "Content-Length": pixel.length,
+    });
+    res.end(pixel);
+  } catch (error) {
+    logger.error("Error in trackEmail controller", { error: error.message });
+    res.status(500).send("Internal Server Error");
   }
 };
 
