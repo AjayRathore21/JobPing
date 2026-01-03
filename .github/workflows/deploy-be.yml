@@ -30,4 +30,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }},
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          BACKEND_URL: ${{ env.BACKEND_URL }}
+          FRONTEND_URL: ${{ env.FRONTEND_URL }}
+          GOOGLE_CALLBACK_URL: ${{ env.GOOGLE_CALLBACK_URL }}
