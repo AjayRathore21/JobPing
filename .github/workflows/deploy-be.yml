@@ -30,4 +30,15 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }},
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          BACKEND_URL: ${{ vars.BACKEND_URL }}
+          FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+          GOOGLE_CALLBACK_URL: ${{ vars.GOOGLE_CALLBACK_URL }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
+          LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+          LOG_TO_FILE: ${{ vars.LOG_TO_FILE }}
+          NODE_ENV: ${{ vars.NODE_ENV }}
