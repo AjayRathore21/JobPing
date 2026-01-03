@@ -35,3 +35,12 @@ jobs:
           BACKEND_URL: ${{ env.BACKEND_URL }}
           FRONTEND_URL: ${{ env.FRONTEND_URL }}
           GOOGLE_CALLBACK_URL: ${{ env.GOOGLE_CALLBACK_URL }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
+          LOG_LEVEL: ${{ env.LOG_LEVEL }}
+          LOG_TO_FILE: ${{ env.LOG_TO_FILE }}
+          NODE_ENV: ${{ env.NODE_ENV }}
+
+
