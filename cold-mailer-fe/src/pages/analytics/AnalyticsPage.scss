@@ -1,4 +1,21 @@
 .analytics-page {
+    .analytics-header {
+        margin-bottom: 32px;
+
+        @media (max-width: 576px) {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+    }
+
+    .analytics-title {
+        margin: 0 !important;
+    }
+
+    .stat-row {
+        margin-bottom: 32px;
+    }
+
     .stat-card {
         border-radius: 12px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -26,16 +43,42 @@
             color: #fff;
             font-size: 20px;
         }
+
+        .stat-value {
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        .stat-change-container {
+            margin-top: 12px;
+        }
+
+        .stat-change-text {
+            font-size: 12px;
+        }
     }
 
     .table-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
         .ant-card-head {
             border-bottom: 1px solid #f1f5f9;
             padding: 0 24px;
 
+            @media (max-width: 576px) {
+                padding: 0 16px;
+            }
+
             .ant-card-head-title {
                 font-weight: 600;
                 font-size: 16px;
+            }
+        }
+
+        .ant-card-body {
+            @media (max-width: 576px) {
+                padding: 16px;
             }
         }
     }

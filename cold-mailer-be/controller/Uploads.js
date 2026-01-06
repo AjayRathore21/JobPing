@@ -88,12 +88,22 @@ export const deleteCsv = async (req, res) => {
       await cloudinary.uploader.destroy(csv.publicId, { resource_type: "raw" });
     }
 
+    // Find the user to calculate opens count for this specific CSV
+    const currentUser = await User.findById(user._id);
+    const opensCount = currentUser.openedEmails.filter(
+      (entry) => entry.csvId && entry.csvId.toString() === id
+    ).length;
+
     // Delete from database
     await CsvUpload.findByIdAndDelete(id);
 
-    // Remove from User's uploadedFiles array
+    // Remove from User's uploadedFiles and openedEmails arrays, and update stats
     await User.findByIdAndUpdate(user._id, {
-      $pull: { uploadedFiles: id },
+      $pull: {
+        uploadedFiles: id,
+        openedEmails: { csvId: id },
+      },
+      $inc: { "stats.totalOpens": -opensCount },
     });
 
     res.json({ message: "CSV file deleted successfully" });

@@ -10,3 +10,92 @@
 .row-failed:hover td {
     filter: brightness(0.95) !important;
 }
+
+.preview-modal-header {
+    padding: 16px 0;
+
+    .ant-typography {
+        margin: 0 !important;
+    }
+}
+
+.selection-controls {
+    margin-bottom: 16px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #f1f5f9;
+
+    @media (max-width: 576px) {
+        padding: 12px;
+
+        .ant-space {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+}
+
+.index-input {
+    width: 80px;
+}
+
+.divider-text {
+    margin-left: 16px;
+}
+
+.total-rows-text {
+    @media (max-width: 576px) {
+        display: block;
+        margin-top: 8px;
+    }
+}
+
+.send-btn-main {
+    min-width: 160px;
+}
+
+.status-eye-icon {
+    color: #52c41a;
+    font-size: 18px;
+}
+
+.loading-container {
+    text-align: center;
+    padding: 40px;
+}
+
+.loading-text {
+    display: block;
+    margin-top: 16px;
+}
+
+// Global modal overrides for responsiveness
+.responsive-preview-modal {
+    @media (max-width: 768px) {
+        max-width: 95vw;
+        margin: 10px auto;
+
+        .ant-modal-footer {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 12px;
+
+            .ant-btn {
+                margin: 0 !important;
+                width: 100%;
+            }
+        }
+    }
+
+    .custom-table {
+        .ant-table-thead>tr>th {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+    }
+
+    .rate-progress {
+        width: 100px;
+    }
+}

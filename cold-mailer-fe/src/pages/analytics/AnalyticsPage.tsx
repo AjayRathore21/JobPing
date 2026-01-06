@@ -8,6 +8,7 @@ import {
   Typography,
   Progress,
   Space,
+  Grid,
 } from "antd";
 import {
   SendOutlined,
@@ -19,8 +20,10 @@ import {
 import "./AnalyticsPage.scss";
 
 const { Title, Text } = Typography;
+const { useBreakpoint } = Grid;
 
 const AnalyticsPage: React.FC = () => {
+  const screens = useBreakpoint();
   // Mock data for analytics
   const stats = [
     {
@@ -67,8 +70,10 @@ const AnalyticsPage: React.FC = () => {
       dataIndex: "rate",
       key: "rate",
       render: (rate: number) => (
-        <Space size="middle">
-          <Progress percent={rate} size="small" style={{ width: 100 }} />
+        <Space size="middle" className="rate-space">
+          {!screens.xs && (
+            <Progress percent={rate} size="small" className="rate-progress" />
+          )}
           <Text>{rate}%</Text>
         </Space>
       ),
@@ -77,8 +82,8 @@ const AnalyticsPage: React.FC = () => {
 
   return (
     <div className="analytics-page">
-      <div style={{ marginBottom: "32px" }}>
-        <Title level={2} style={{ margin: 0 }}>
+      <div className="analytics-header">
+        <Title level={2} className="analytics-title">
           Analytics
         </Title>
         <Text type="secondary">
@@ -86,7 +91,7 @@ const AnalyticsPage: React.FC = () => {
         </Text>
       </div>
 
-      <Row gutter={[24, 24]} style={{ marginBottom: "32px" }}>
+      <Row gutter={[24, 24]} className="stat-row">
         {stats.map((stat, index) => (
           <Col xs={24} sm={12} lg={6} key={index}>
             <Card bordered={false} className="stat-card">
@@ -100,10 +105,11 @@ const AnalyticsPage: React.FC = () => {
                     {stat.icon}
                   </div>
                 }
-                valueStyle={{ color: "#1e293b", fontWeight: 700 }}
+                valueStyle={{ color: "inherit", fontWeight: "inherit" }}
+                className="stat-value"
               />
-              <div style={{ marginTop: 12 }}>
-                <Text type="success" style={{ fontSize: 12 }}>
+              <div className="stat-change-container">
+                <Text type="success" className="stat-change-text">
                   <RiseOutlined /> +12% from last month
                 </Text>
               </div>
@@ -118,16 +124,13 @@ const AnalyticsPage: React.FC = () => {
             title="Recent Campaign Performance"
             bordered={false}
             className="table-card"
-            style={{
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-            }}
           >
             <Table
               dataSource={recentCampaigns}
               columns={columns}
               pagination={false}
               className="custom-table"
+              scroll={{ x: true }}
             />
           </Card>
         </Col>

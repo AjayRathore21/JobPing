@@ -9,7 +9,11 @@ import {
   Input,
   Modal,
   Space,
+  Row,
+  Col,
+  Grid,
 } from "antd";
+import type { UploadFile, RcFile } from "antd/es/upload/interface";
 import {
   InboxOutlined,
   UploadOutlined,
@@ -19,15 +23,18 @@ import {
 import PreviewCsv from "./PreviewCsv";
 import axios from "../configs/axiosConfig";
 import { useUserStore } from "../store/userStore";
+import "./DashboardPage.scss";
 
 const { Title, Text } = Typography;
 const { Dragger } = Upload;
 const { TextArea } = Input;
+const { useBreakpoint } = Grid;
 
 const DashboardPage = () => {
   const [uploading, setUploading] = useState(false);
-  const [fileList, setFileList] = useState<any[]>([]);
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const screens = useBreakpoint();
 
   const emailSubject = useUserStore((state) => state.emailSubject);
   const emailHtml = useUserStore((state) => state.emailHtml);
@@ -42,7 +49,11 @@ const DashboardPage = () => {
 
     const file = fileList[0];
     const formData = new FormData();
-    formData.append("csv", file);
+    if (file.originFileObj) {
+      formData.append("csv", file.originFileObj as File);
+    } else if (file instanceof File) {
+      formData.append("csv", file);
+    }
 
     setUploading(true);
     axios
@@ -65,14 +76,14 @@ const DashboardPage = () => {
   };
 
   const uploadProps = {
-    onRemove: (file: any) => {
+    onRemove: (file: UploadFile) => {
       const index = fileList.indexOf(file);
       const newFileList = fileList.slice();
       newFileList.splice(index, 1);
       setFileList(newFileList);
     },
-    beforeUpload: (file: any) => {
-      setFileList([file]);
+    beforeUpload: (file: RcFile) => {
+      setFileList([file as any]);
       return false;
     },
     fileList,
@@ -82,16 +93,9 @@ const DashboardPage = () => {
 
   return (
     <div className="dashboard-page">
-      <div
-        style={{
-          marginBottom: "32px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-        }}
-      >
+      <div className="dashboard-header">
         <div>
-          <Title level={2} style={{ margin: 0 }}>
+          <Title level={2} className="dashboard-title">
             Dashboard
           </Title>
           <Text type="secondary">
@@ -100,106 +104,88 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "24px",
-          marginBottom: "32px",
-        }}
-      >
-        <Card
-          title={
-            <Space>
-              <UploadOutlined />
-              <span>Upload Contacts</span>
-            </Space>
-          }
-          bordered={false}
-          style={{
-            height: "100%",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-            borderRadius: "12px",
-          }}
-        >
-          <Dragger
-            {...uploadProps}
-            style={{
-              background: "#f8fafc",
-              borderRadius: "8px",
-              border: "1px dashed #cbd5e1",
-            }}
+      <Row gutter={[24, 24]} className="dashboard-cards">
+        <Col xs={24} lg={12}>
+          <Card
+            title={
+              <Space>
+                <UploadOutlined />
+                <span>Upload Contacts</span>
+              </Space>
+            }
+            bordered={false}
+            className="dashboard-card"
           >
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined style={{ color: "#1890ff" }} />
-            </p>
-            <p className="ant-upload-text">Drag CSV file here</p>
-            <Button
-              type="primary"
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleUpload();
-              }}
-              loading={uploading}
-              disabled={fileList.length === 0}
-              style={{ marginTop: "12px" }}
-            >
-              Upload CSV
-            </Button>
-          </Dragger>
-        </Card>
+            <Dragger {...uploadProps} className="dragger-container">
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined className="dragger-icon" />
+              </p>
+              <p className="ant-upload-text">Drag CSV file here</p>
+              <Button
+                type="primary"
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleUpload();
+                }}
+                loading={uploading}
+                disabled={fileList.length === 0}
+                className="upload-btn"
+              >
+                Upload CSV
+              </Button>
+            </Dragger>
+          </Card>
+        </Col>
 
-        <Card
-          title={
-            <Space>
-              <EditOutlined />
-              <span>Email Content Editor</span>
+        <Col xs={24} lg={12}>
+          <Card
+            title={
+              <Space>
+                <EditOutlined />
+                <span>Email Content Editor</span>
+              </Space>
+            }
+            bordered={false}
+            className="dashboard-card"
+            extra={
+              <Button
+                icon={<EyeOutlined />}
+                onClick={() => setIsPreviewOpen(true)}
+                disabled={!emailHtml}
+              >
+                {!screens.xs && "Preview"}
+              </Button>
+            }
+          >
+            <Space direction="vertical" className="editor-space" size="middle">
+              <div>
+                <Text strong>Email Subject</Text>
+                <Input
+                  placeholder="Enter email subject"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  className="subject-input"
+                />
+              </div>
+              <div>
+                <Text strong>HTML Layout / Message</Text>
+                <TextArea
+                  placeholder="Enter HTML content or plain text..."
+                  rows={6}
+                  value={emailHtml}
+                  onChange={(e) => setEmailHtml(e.target.value)}
+                  className="html-editor"
+                />
+              </div>
             </Space>
-          }
-          bordered={false}
-          style={{
-            height: "100%",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-            borderRadius: "12px",
-          }}
-          extra={
-            <Button
-              icon={<EyeOutlined />}
-              onClick={() => setIsPreviewOpen(true)}
-              disabled={!emailHtml}
-            >
-              Preview
-            </Button>
-          }
-        >
-          <Space direction="vertical" style={{ width: "100%" }} size="middle">
-            <div>
-              <Text strong>Email Subject</Text>
-              <Input
-                placeholder="Enter email subject"
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-                style={{ marginTop: "8px" }}
-              />
-            </div>
-            <div>
-              <Text strong>HTML Layout / Message</Text>
-              <TextArea
-                placeholder="Enter HTML content or plain text..."
-                rows={6}
-                value={emailHtml}
-                onChange={(e) => setEmailHtml(e.target.value)}
-                style={{ marginTop: "8px", fontFamily: "monospace" }}
-              />
-            </div>
-          </Space>
-        </Card>
-      </div>
+          </Card>
+        </Col>
+      </Row>
 
       <Divider />
 
-      <Title level={4} style={{ marginBottom: "24px" }}>
+      <Title level={4} className="section-title">
         Data Overview
       </Title>
       <PreviewCsv />
@@ -216,22 +202,8 @@ const DashboardPage = () => {
         width={800}
         centered
       >
-        <div
-          style={{
-            border: "1px solid #f1f5f9",
-            padding: "24px",
-            minHeight: "300px",
-            borderRadius: "8px",
-            background: "#fff",
-          }}
-        >
-          <div
-            style={{
-              marginBottom: "16px",
-              borderBottom: "1px solid #f1f5f9",
-              paddingBottom: "12px",
-            }}
-          >
+        <div className="preview-content">
+          <div className="preview-header">
             <Text type="secondary">Subject:</Text>{" "}
             <Text strong>{emailSubject || "(No Subject)"}</Text>
           </div>
@@ -239,7 +211,7 @@ const DashboardPage = () => {
             dangerouslySetInnerHTML={{
               __html:
                 emailHtml ||
-                '<p style="color: #94a3b8; text-align: center; margin-top: 100px;">No HTML content provided</p>',
+                '<p class="preview-placeholder">No HTML content provided</p>',
             }}
           />
         </div>

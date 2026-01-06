@@ -1,0 +1,104 @@
+.dashboard-page {
+    .dashboard-header {
+        margin-bottom: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+
+        @media (max-width: 576px) {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+    }
+
+    .dashboard-cards {
+        margin-bottom: 32px;
+
+        @media (max-width: 576px) {
+            margin-bottom: 24px;
+        }
+
+        .dashboard-card {
+            height: 100%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+
+            .ant-card-head {
+                @media (max-width: 576px) {
+                    padding: 0 12px;
+                }
+            }
+
+            .ant-card-body {
+                @media (max-width: 576px) {
+                    padding: 16px;
+                }
+            }
+        }
+    }
+
+    // Modal responsiveness
+    .ant-modal {
+        @media (max-width: 768px) {
+            max-width: 95vw;
+            margin: 10px auto;
+        }
+    }
+
+    .dashboard-title {
+        margin: 0 !important;
+    }
+
+    .dragger-container {
+        background: #f8fafc !important;
+        border-radius: 8px !important;
+        border: 1px dashed #cbd5e1 !important;
+    }
+
+    .upload-btn {
+        margin-top: 12px;
+    }
+
+    .editor-space {
+        width: 100%;
+    }
+
+    .subject-input {
+        margin-top: 8px;
+    }
+
+    .html-editor {
+        margin-top: 8px;
+        font-family: monospace;
+    }
+
+    .section-title {
+        margin-bottom: 24px !important;
+    }
+
+    .preview-content {
+        border: 1px solid #f1f5f9;
+        padding: 24px;
+        min-height: 300px;
+        border-radius: 8px;
+        background: #fff;
+    }
+
+    .preview-header {
+        margin-bottom: 16px;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 12px;
+    }
+
+    .preview-placeholder {
+        color: #94a3b8;
+        text-align: center;
+        margin-top: 100px;
+    }
+
+    .dragger-icon {
+        color: #1890ff;
+    }
+}
