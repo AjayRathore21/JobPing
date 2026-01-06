@@ -11,6 +11,7 @@ import {
   InputNumber,
   message,
   Tooltip,
+  Grid,
 } from "antd";
 import {
   MailOutlined,
@@ -23,6 +24,7 @@ import { useUserStore } from "../store/userStore";
 import "./PreviewCsv.scss";
 
 const { Title, Text } = Typography;
+const { useBreakpoint } = Grid;
 
 interface CsvRecord {
   _id: string;
@@ -60,6 +62,7 @@ const PreviewCsvData = ({
   onSendEmail,
   sendingEmail,
 }: PreviewCsvDataProps) => {
+  const screens = useBreakpoint();
   // Row selection state
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [startIndex, setStartIndex] = useState<number | null>(1);
@@ -251,7 +254,7 @@ const PreviewCsvData = ({
             <Tooltip
               title={`Opened at: ${new Date(opened.openedAt).toLocaleString()}`}
             >
-              <EyeOutlined style={{ color: "#52c41a", fontSize: "18px" }} />
+              <EyeOutlined className="status-eye-icon" />
             </Tooltip>
           );
         }
@@ -264,10 +267,8 @@ const PreviewCsvData = ({
     <Modal
       key={selectedCsv?._id}
       title={
-        <div style={{ padding: "16px 0" }}>
-          <Title level={4} style={{ margin: 0 }}>
-            Preview: {selectedCsv?.name}
-          </Title>
+        <div className="preview-modal-header">
+          <Title level={4}>Preview: {selectedCsv?.name}</Title>
           <Text type="secondary">
             Review and select records for your outreach
           </Text>
@@ -286,36 +287,24 @@ const PreviewCsvData = ({
           loading={sendingEmail}
           size="large"
           icon={<MailOutlined />}
-          style={{ minWidth: "160px" }}
+          className="send-btn-main"
         >
           Send Emails Now
         </Button>,
       ]}
-      width={1100}
-      styles={{
-        body: { maxHeight: "70vh", overflow: "auto", padding: "0 24px 24px" },
-        header: { borderBottom: "1px solid #f1f5f9", marginBottom: "24px" },
-      }}
+      width={screens.xs ? "95%" : 1100}
+      className="responsive-preview-modal"
       centered
     >
       {modalLoading ? (
-        <div style={{ textAlign: "center", padding: "40px" }}>
+        <div className="loading-container">
           <Spin size="large" />
-          <Text style={{ display: "block", marginTop: 16 }}>
-            Loading CSV...
-          </Text>
+          <Text className="loading-text">Loading CSV...</Text>
         </div>
       ) : previewData.length > 0 ? (
         <>
           {/* Selection Controls */}
-          <div
-            style={{
-              marginBottom: 16,
-              padding: 16,
-              background: "#f5f5f5",
-              borderRadius: 8,
-            }}
-          >
+          <div className="selection-controls">
             <Space wrap>
               <Checkbox
                 checked={
@@ -327,7 +316,7 @@ const PreviewCsvData = ({
                 Select All
               </Checkbox>
 
-              <span style={{ marginLeft: 16 }}>|</span>
+              {!screens.xs && <span className="divider-text">|</span>}
 
               <Space>
                 <Text>Start Index:</Text>
@@ -336,7 +325,7 @@ const PreviewCsvData = ({
                   max={previewData.length}
                   value={startIndex}
                   onChange={(value) => setStartIndex(value)}
-                  style={{ width: 80 }}
+                  className="index-input"
                 />
               </Space>
 
@@ -347,7 +336,7 @@ const PreviewCsvData = ({
                   max={previewData.length}
                   value={endIndex}
                   onChange={(value) => setEndIndex(value)}
-                  style={{ width: 80 }}
+                  className="index-input"
                 />
               </Space>
 
@@ -355,7 +344,9 @@ const PreviewCsvData = ({
                 Apply Range
               </Button>
 
-              <Text type="secondary">({previewData.length} total rows)</Text>
+              <Text type="secondary" className="total-rows-text">
+                ({previewData.length} total rows)
+              </Text>
             </Space>
           </div>
 

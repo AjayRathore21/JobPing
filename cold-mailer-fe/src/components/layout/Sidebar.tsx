@@ -1,8 +1,5 @@
 import React, { useState } from "react";
-import {
-  FileOutlined,
-  PieChartOutlined,
-} from "@ant-design/icons";
+import { PieChartOutlined } from "@ant-design/icons";
 import { Layout, Menu, type MenuProps } from "antd";
 import { useNavigate, useLocation } from "react-router";
 import "./Sidebar.scss";
@@ -28,17 +25,15 @@ function getItem(
 const items: MenuItem[] = [
   getItem("Dashboard", "/dashboard", <PieChartOutlined />),
   getItem("Analytics", "/analytics", <PieChartOutlined />),
-  // getItem("Campaigns", "/campaigns", <DesktopOutlined />),
-  // getItem("Email Accounts", "/accounts", <UserOutlined />),
-  // getItem("Team", "sub2", <TeamOutlined />, [
-  //   getItem("Members", "/team/members"),
-  //   getItem("Roles", "/team/roles"),
-  // ]),
-  getItem("Settings", "/settings", <FileOutlined />),
 ];
 
-const Sidebar: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
+interface SidebarContentProps {
+  collapsed?: boolean;
+}
+
+export const SidebarContent: React.FC<SidebarContentProps> = ({
+  collapsed,
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -47,21 +42,13 @@ const Sidebar: React.FC = () => {
   };
 
   return (
-    <Sider
-      collapsible
-      collapsed={collapsed}
-      onCollapse={(value) => setCollapsed(value)}
-      className="sidebar"
-      width={240}
-      theme="dark"
-    >
+    <>
       <div className="logo-container">
         <img
           className="logo-icon"
           src="/src/assets/images/jobping.png"
           alt="JobPing"
         />
-
         {!collapsed && <span className="logo-text">JobPing</span>}
       </div>
       <Menu
@@ -71,6 +58,25 @@ const Sidebar: React.FC = () => {
         items={items}
         onClick={handleMenuClick}
       />
+    </>
+  );
+};
+
+const Sidebar: React.FC = () => {
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <Sider
+      collapsible
+      collapsed={collapsed}
+      onCollapse={(value) => setCollapsed(value)}
+      className="sidebar desktop-sidebar"
+      width={240}
+      theme="dark"
+      breakpoint="lg"
+      collapsedWidth="80"
+    >
+      <SidebarContent collapsed={collapsed} />
     </Sider>
   );
 };

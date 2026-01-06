@@ -5,6 +5,9 @@ import {
   Avatar,
   Dropdown,
   Breadcrumb,
+  Drawer,
+  Button,
+  Grid,
   type MenuProps,
 } from "antd";
 import { Outlet, useNavigate, useLocation, Link } from "react-router";
@@ -12,15 +15,21 @@ import {
   UserOutlined,
   LogoutOutlined,
   SettingOutlined,
+  MenuOutlined,
 } from "@ant-design/icons";
 import { useUserStore } from "../../store/userStore";
 import { setTokenToLS } from "../../HelperMethods";
-import Sidebar from "./Sidebar";
+import Sidebar, { SidebarContent } from "./Sidebar";
 import "./AppLayout.scss";
 
 const { Header, Content, Footer } = Layout;
+const { useBreakpoint } = Grid;
 
 const AppLayout: React.FC = () => {
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -74,11 +83,33 @@ const AppLayout: React.FC = () => {
 
   return (
     <Layout className="app-layout">
-      <Sidebar />
+      {!isMobile && <Sidebar />}
+
+      <Drawer
+        title={null}
+        placement="left"
+        closable={false}
+        onClose={() => setDrawerOpen(false)}
+        open={drawerOpen}
+        key="mobile-drawer"
+        width={240}
+        className="mobile-sidebar-drawer"
+      >
+        <SidebarContent />
+      </Drawer>
+
       <Layout className="layout-main">
         <Header className="header" style={{ background: colorBgContainer }}>
           <div className="header-left">
-            <Breadcrumb items={breadcrumbItems} />
+            {isMobile && (
+              <Button
+                type="text"
+                icon={<MenuOutlined />}
+                onClick={() => setDrawerOpen(true)}
+                className="mobile-menu-btn"
+              />
+            )}
+            {!isMobile && <Breadcrumb items={breadcrumbItems} />}
           </div>
           <div className="header-right">
             <Dropdown
@@ -86,8 +117,10 @@ const AppLayout: React.FC = () => {
               placement="bottomRight"
               arrow
             >
-              <div className="user-profile" style={{ cursor: "pointer" }}>
-                <span>{user?.name || user?.email || "User"}</span>
+              <div className="user-profile">
+                {!isMobile && (
+                  <span>{user?.name || user?.email || "User"}</span>
+                )}
                 <Avatar src={user?.picture} icon={<UserOutlined />} />
               </div>
             </Dropdown>
