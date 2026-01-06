@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import {
-  DesktopOutlined,
   FileOutlined,
   PieChartOutlined,
-  TeamOutlined,
-  UserOutlined,
-  MailOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, type MenuProps } from "antd";
 import { useNavigate, useLocation } from "react-router";
@@ -60,10 +56,13 @@ const Sidebar: React.FC = () => {
       theme="dark"
     >
       <div className="logo-container">
-        <div className="logo-icon">
-          <MailOutlined />
-        </div>
-        {!collapsed && <span className="logo-text">ColdMailer</span>}
+        <img
+          className="logo-icon"
+          src="/src/assets/images/jobping.png"
+          alt="JobPing"
+        />
+
+        {!collapsed && <span className="logo-text">JobPing</span>}
       </div>
       <Menu
         theme="dark"

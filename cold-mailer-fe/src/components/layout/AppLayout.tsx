@@ -97,7 +97,7 @@ const AppLayout: React.FC = () => {
           <Outlet />
         </Content>
         <Footer className="footer">
-          Cold Mailer ©{new Date().getFullYear()} • Elevate Your Outreach
+          JobPing ©{new Date().getFullYear()} • Elevate Your Outreach
         </Footer>
       </Layout>
     </Layout>
