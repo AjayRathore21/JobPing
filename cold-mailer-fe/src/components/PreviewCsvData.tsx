@@ -1,0 +1,385 @@
+import { useState, useEffect } from "react";
+import {
+  Modal,
+  Button,
+  Typography,
+  Spin,
+  Alert,
+  Table,
+  Space,
+  Checkbox,
+  InputNumber,
+  message,
+  Tooltip,
+} from "antd";
+import {
+  MailOutlined,
+  EyeOutlined,
+  SendOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
+import type { ColumnsType } from "antd/es/table";
+import { useUserStore } from "../store/userStore";
+import "./PreviewCsv.scss";
+
+const { Title, Text } = Typography;
+
+interface CsvRecord {
+  _id: string;
+  name: string;
+  url: string;
+  totalRecords: number;
+  sent: number;
+  uploadedAt: string;
+  sentEmailRowIds?: string[];
+  failedEmailRowIds?: string[];
+}
+
+interface PreviewCsvDataProps {
+  isOpen: boolean;
+  onClose: () => void;
+  selectedCsv: CsvRecord | null;
+  modalLoading: boolean;
+  previewData: string[][];
+  previewHeaders: string[];
+  onSendEmail: (params: {
+    mode: "selected" | "range" | "bulk";
+    rowIds?: string[];
+    range?: { start: number; end: number };
+  }) => Promise<void>;
+  sendingEmail: boolean;
+}
+
+const PreviewCsvData = ({
+  isOpen,
+  onClose,
+  selectedCsv,
+  modalLoading,
+  previewData,
+  previewHeaders,
+  onSendEmail,
+  sendingEmail,
+}: PreviewCsvDataProps) => {
+  // Row selection state
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [startIndex, setStartIndex] = useState<number | null>(1);
+  const [endIndex, setEndIndex] = useState<number | null>(5);
+  const [selectionMode, setSelectionMode] = useState<
+    "selected" | "range" | "bulk"
+  >("bulk");
+  const [resendingKey, setResendingKey] = useState<string | null>(null);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedRowKeys([]);
+      setStartIndex(1);
+      setEndIndex(5);
+      setSelectionMode("bulk");
+      setResendingKey(null);
+    }
+  }, [isOpen]);
+
+  const getRowStatus = (record: Record<string, string>) => {
+    const key = record.key;
+    const isSentPersistent = selectedCsv?.sentEmailRowIds?.includes(key);
+    const isFailedPersistent = selectedCsv?.failedEmailRowIds?.includes(key);
+
+    const isSent = isSentPersistent;
+    const isFailed = isFailedPersistent;
+    return { isSent, isFailed };
+  };
+
+  // Transform data rows into objects for the table
+  const previewTableData = previewData.map((row) => {
+    const rowObj: Record<string, string> = {};
+
+    row.forEach((cell, cellIndex) => {
+      rowObj[previewHeaders[cellIndex]] = cell;
+    });
+
+    // Find "id" column case-insensitively for the key or use the first column as per user's latest change
+    const key = rowObj[previewHeaders[0]];
+
+    rowObj.key = key;
+    return rowObj;
+  });
+
+  // Handle select all
+  const handleSelectAll = () => {
+    if (selectedRowKeys.length === previewData.length) {
+      setSelectedRowKeys([]);
+      setSelectionMode("bulk");
+    } else {
+      const keys = previewTableData.map((row) => row.key);
+      setSelectedRowKeys(keys);
+      setSelectionMode("selected");
+    }
+  };
+
+  // Handle range selection
+  const handleApplyRange = () => {
+    if (startIndex !== null && endIndex !== null) {
+      const start = startIndex - 1; // preview data is 0 index based
+      const end = endIndex - 1;
+
+      if (start <= end && start >= 0 && end < previewTableData.length) {
+        const keys: React.Key[] = [];
+        for (let i = start; i <= end; i++) {
+          const row = previewTableData[i];
+          keys.push(row.key);
+        }
+        setSelectedRowKeys(keys);
+        setSelectionMode("range");
+      } else {
+        message.error("Invalid range indices");
+      }
+    }
+  };
+
+  const handleSingleSend = async (key: string) => {
+    setResendingKey(key);
+    await onSendEmail({ mode: "selected", rowIds: [key] });
+    setResendingKey(null);
+  };
+
+  // Handle send email (Bulk/Range/Multi)
+  const handleSendEmail = async () => {
+    if (selectedRowKeys.length > 0) {
+      if (
+        selectionMode === "range" &&
+        startIndex !== null &&
+        endIndex !== null
+      ) {
+        await onSendEmail({
+          mode: "range",
+          range: { start: startIndex, end: endIndex },
+        });
+      } else {
+        await onSendEmail({
+          mode: "selected",
+          rowIds: selectedRowKeys.map((k) => String(k)),
+        });
+      }
+    } else {
+      await onSendEmail({ mode: "bulk" });
+    }
+  };
+
+  // Row selection config
+  const rowSelection = {
+    selectedRowKeys,
+    hideSelectAll: true,
+    onChange: (newSelectedRowKeys: React.Key[]) => {
+      setSelectedRowKeys(newSelectedRowKeys);
+      setSelectionMode(newSelectedRowKeys.length > 0 ? "selected" : "bulk");
+    },
+  };
+
+  const previewColumns: ColumnsType<Record<string, string>> = [
+    ...previewHeaders
+      .filter((header) => header.toLowerCase() !== "id")
+      .map((header) => ({
+        title: header,
+        dataIndex: header,
+        key: header,
+        ellipsis: true,
+      })),
+    {
+      title: "Actions",
+      key: "actions",
+      fixed: "right",
+      width: 250,
+      render: (_, record: Record<string, string>) => {
+        const key = record.key;
+        const { isSent, isFailed } = getRowStatus(record);
+
+        return (
+          <Space size="small">
+            {!isSent && !isFailed && (
+              <Tooltip title="Send Email">
+                <Button
+                  size="small"
+                  type="primary"
+                  icon={<MailOutlined />}
+                  onClick={() => handleSingleSend(key)}
+                  loading={resendingKey === key}
+                />
+              </Tooltip>
+            )}
+            {isSent && (
+              <Tooltip title="Resend Email">
+                <Button
+                  size="small"
+                  icon={<SendOutlined />}
+                  onClick={() => handleSingleSend(key)}
+                  loading={resendingKey === key}
+                />
+              </Tooltip>
+            )}
+            {isFailed && (
+              <Tooltip title="Retry Failed Email">
+                <Button
+                  size="small"
+                  type="primary"
+                  ghost
+                  icon={<ReloadOutlined />}
+                  onClick={() => handleSingleSend(key)}
+                  loading={resendingKey === key}
+                />
+              </Tooltip>
+            )}
+          </Space>
+        );
+      },
+    },
+    {
+      title: "Status",
+      key: "status",
+      fixed: "right",
+      width: 100,
+      render: (_, record: Record<string, string>) => {
+        const user = useUserStore.getState().user;
+        const opened = user?.openedEmails?.find(
+          (oe) =>
+            oe.csvId === selectedCsv?._id &&
+            String(oe.rowId) === String(record.key)
+        );
+
+        if (opened) {
+          return (
+            <Tooltip
+              title={`Opened at: ${new Date(opened.openedAt).toLocaleString()}`}
+            >
+              <EyeOutlined style={{ color: "#52c41a", fontSize: "18px" }} />
+            </Tooltip>
+          );
+        }
+        return null;
+      },
+    },
+  ];
+
+  return (
+    <Modal
+      key={selectedCsv?._id}
+      title={
+        <div style={{ padding: "16px 0" }}>
+          <Title level={4} style={{ margin: 0 }}>
+            Preview: {selectedCsv?.name}
+          </Title>
+          <Text type="secondary">
+            Review and select records for your outreach
+          </Text>
+        </div>
+      }
+      open={isOpen}
+      onCancel={onClose}
+      footer={[
+        <Button key="back" onClick={onClose} size="large">
+          Cancel
+        </Button>,
+        <Button
+          key="send"
+          type="primary"
+          onClick={handleSendEmail}
+          loading={sendingEmail}
+          size="large"
+          icon={<MailOutlined />}
+          style={{ minWidth: "160px" }}
+        >
+          Send Emails Now
+        </Button>,
+      ]}
+      width={1100}
+      styles={{
+        body: { maxHeight: "70vh", overflow: "auto", padding: "0 24px 24px" },
+        header: { borderBottom: "1px solid #f1f5f9", marginBottom: "24px" },
+      }}
+      centered
+    >
+      {modalLoading ? (
+        <div style={{ textAlign: "center", padding: "40px" }}>
+          <Spin size="large" />
+          <Text style={{ display: "block", marginTop: 16 }}>
+            Loading CSV...
+          </Text>
+        </div>
+      ) : previewData.length > 0 ? (
+        <>
+          {/* Selection Controls */}
+          <div
+            style={{
+              marginBottom: 16,
+              padding: 16,
+              background: "#f5f5f5",
+              borderRadius: 8,
+            }}
+          >
+            <Space wrap>
+              <Checkbox
+                checked={
+                  selectedRowKeys.length === previewData.length &&
+                  previewData.length > 0
+                }
+                onChange={handleSelectAll}
+              >
+                Select All
+              </Checkbox>
+
+              <span style={{ marginLeft: 16 }}>|</span>
+
+              <Space>
+                <Text>Start Index:</Text>
+                <InputNumber
+                  min={1}
+                  max={previewData.length}
+                  value={startIndex}
+                  onChange={(value) => setStartIndex(value)}
+                  style={{ width: 80 }}
+                />
+              </Space>
+
+              <Space>
+                <Text>End Index:</Text>
+                <InputNumber
+                  min={1}
+                  max={previewData.length}
+                  value={endIndex}
+                  onChange={(value) => setEndIndex(value)}
+                  style={{ width: 80 }}
+                />
+              </Space>
+
+              <Button onClick={handleApplyRange} size="small" type="default">
+                Apply Range
+              </Button>
+
+              <Text type="secondary">({previewData.length} total rows)</Text>
+            </Space>
+          </div>
+
+          <Table
+            dataSource={previewTableData}
+            columns={previewColumns}
+            rowKey="key"
+            rowSelection={rowSelection}
+            pagination={{ pageSize: 10 }}
+            scroll={{ x: true }}
+            size="small"
+            rowClassName={(record) => {
+              const { isSent, isFailed } = getRowStatus(record);
+              if (isSent) return "row-sent";
+              if (isFailed) return "row-failed";
+              return "";
+            }}
+          />
+        </>
+      ) : (
+        <Alert message="No data found in CSV file" type="info" showIcon />
+      )}
+    </Modal>
+  );
+};
+
+export default PreviewCsvData;
