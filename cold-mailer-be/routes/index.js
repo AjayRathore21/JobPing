@@ -3,6 +3,8 @@ import authRoutes from "./Auth.js";
 import uploadRoutes from "./UploadCsv.js";
 import sendEmail from "./SendEmail.js";
 import { trackEmail } from "../controller/SendEmail.js";
+import customMailRoutes from "./CustomMail.js";
+import trackingRoutes from "./Tracking.js";
 import passport from "passport";
 const router = express.Router();
 
@@ -10,7 +12,9 @@ router.use("/auth", authRoutes);
 const checkAuth = passport.authenticate("jwt", { session: false });
 
 router.get("/track-email", trackEmail);
+router.use("/track", trackingRoutes);
 router.use("/upload", checkAuth, uploadRoutes);
 router.use("/send-email", checkAuth, sendEmail);
+router.use("/custom-mail", checkAuth, customMailRoutes);
 
 export default router;
