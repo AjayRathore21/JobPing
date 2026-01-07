@@ -73,6 +73,10 @@ const userSchema = new mongoose.Schema(
         openedAt: { type: Date, default: Date.now },
       },
     ],
+    // Store custom mails sent manually
+    customMailSent: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "CustomMail" },
+    ],
   },
   { timestamps: true }
 );

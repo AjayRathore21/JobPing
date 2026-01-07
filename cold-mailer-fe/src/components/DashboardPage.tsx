@@ -21,14 +21,57 @@ import {
   EditOutlined,
 } from "@ant-design/icons";
 import PreviewCsv from "./PreviewCsv";
+import ManualEmailInput from "./ManualEmailInput";
 import axios from "../configs/axiosConfig";
-import { useUserStore } from "../store/userStore";
+import { useUserStore, type CustomMail } from "../store/userStore";
 import "./DashboardPage.scss";
+import type { ColumnsType } from "antd/es/table";
+import { Table, Tag } from "antd";
 
 const { Title, Text } = Typography;
 const { Dragger } = Upload;
 const { TextArea } = Input;
 const { useBreakpoint } = Grid;
+
+// NOTE: Column keys must match the keys defined in CustomMailSchema
+const CUSTOM_MAIL_COLUMNS: ColumnsType<CustomMail> = [
+  {
+    title: "Email",
+    dataIndex: "emailId",
+    key: "emailId",
+    ellipsis: true,
+  },
+  {
+    title: "Company",
+    dataIndex: "company",
+    key: "company",
+    render: (text) => text || "-",
+  },
+  {
+    title: "Location",
+    dataIndex: "location",
+    key: "location",
+    render: (text) => text || "-",
+  },
+  {
+    title: "Status",
+    dataIndex: "openedStatus",
+    key: "openedStatus",
+    width: 120,
+    render: (opened: boolean) => (
+      <Tag color={opened ? "success" : "processing"}>
+        {opened ? "Opened" : "Sent"}
+      </Tag>
+    ),
+  },
+  {
+    title: "Sent At",
+    dataIndex: "createdAt",
+    key: "createdAt",
+    width: 180,
+    render: (date: string) => new Date(date).toLocaleString(),
+  },
+];
 
 const DashboardPage = () => {
   const [uploading, setUploading] = useState(false);
@@ -40,6 +83,8 @@ const DashboardPage = () => {
   const emailHtml = useUserStore((state) => state.emailHtml);
   const setEmailSubject = useUserStore((state) => state.setEmailSubject);
   const setEmailHtml = useUserStore((state) => state.setEmailHtml);
+  const user = useUserStore((state) => state.user);
+
 
   const handleUpload = () => {
     if (fileList.length === 0) {
@@ -106,6 +151,7 @@ const DashboardPage = () => {
 
       <Row gutter={[24, 24]} className="dashboard-cards">
         <Col xs={24} lg={12}>
+          <ManualEmailInput />
           <Card
             title={
               <Space>
@@ -185,8 +231,24 @@ const DashboardPage = () => {
 
       <Divider />
 
+      <section className="manual-emails-section">
+        <Title level={4} className="section-title">
+          Manually Sent Emails
+        </Title>
+        <Table
+          dataSource={user?.customMailSent || []}
+          columns={CUSTOM_MAIL_COLUMNS}
+          rowKey="_id"
+          pagination={{ pageSize: 5 }}
+          className="custom-table"
+          locale={{ emptyText: "No manual emails sent yet" }}
+        />
+      </section>
+
+      <Divider />
+
       <Title level={4} className="section-title">
-        Data Overview
+        CSV Data Overview
       </Title>
       <PreviewCsv />
 

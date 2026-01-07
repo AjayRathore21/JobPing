@@ -30,9 +30,7 @@ const AppLayout: React.FC = () => {
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
+  theme.useToken();
   const user = useUserStore((state) => state.user);
   const clearUser = useUserStore((state) => state.clearUser);
   const navigate = useNavigate();
@@ -99,7 +97,7 @@ const AppLayout: React.FC = () => {
       </Drawer>
 
       <Layout className="layout-main">
-        <Header className="header" style={{ background: colorBgContainer }}>
+        <Header className="header">
           <div className="header-left">
             {isMobile && (
               <Button

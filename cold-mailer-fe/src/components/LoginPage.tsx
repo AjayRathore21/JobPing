@@ -95,16 +95,11 @@ const LoginPage = () => {
         onClick={handleGoogleLogin}
         block
         size="large"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "8px",
-        }}
+        className="google-login-btn"
       >
         Sign in with Google
       </Button>
-      <div className="auth-form-link" style={{ marginTop: "16px" }}>
+      <div className="auth-form-link auth-link-container">
         <Link to="/signup">Don't have an account? Sign up</Link>
       </div>
     </div>
