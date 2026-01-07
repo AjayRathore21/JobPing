@@ -34,7 +34,7 @@ export const login = async (req, res) => {
         .json({ message: "email and password are required." });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate("customMailSent");
 
     if (!user) {
       logger.info("Login failed - user not found", {
@@ -170,7 +170,7 @@ export const getUserProfile = async (req, res) => {
   try {
     const correlationId = req.correlationId;
 
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).populate("customMailSent");
 
     if (!user) {
       logger.warn("Get profile failed - user not found", {

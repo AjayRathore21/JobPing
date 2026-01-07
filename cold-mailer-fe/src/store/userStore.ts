@@ -1,7 +1,18 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface UserInfo {
+export interface CustomMail {
+  _id: string;
+  emailId: string;
+  openedStatus: boolean;
+  userId: string;
+  company: string | null;
+  location: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserInfo {
   id: string;
   email: string;
   name?: string;
@@ -14,6 +25,13 @@ interface UserInfo {
     rowId: string;
     openedAt: string;
   }>;
+  customMailSent?: CustomMail[];
+  stats?: {
+    totalCampaigns: number;
+    totalEmailsSent: number;
+    totalOpens: number;
+    totalClicks: number;
+  };
   [key: string]: unknown;
 }
 
