@@ -19,7 +19,7 @@ const DashboardPage = () => {
       key: "csv",
       label: (
         <span>
-          <FileTextOutlined />
+          <FileTextOutlined style={{ marginRight: "8px" }} />
           Mail with CSV
         </span>
       ),
@@ -29,7 +29,7 @@ const DashboardPage = () => {
       key: "custom",
       label: (
         <span>
-          <MailOutlined />
+          <MailOutlined style={{ marginRight: "8px" }} />
           Custom Mail
         </span>
       ),
@@ -57,6 +57,7 @@ const DashboardPage = () => {
           className="dashboard-tabs"
           size="large"
           type="line"
+          centered
         />
       </div>
 
