@@ -1,140 +1,41 @@
 import { useState } from "react";
-import {
-  Button,
-  Card,
-  Typography,
-  Upload,
-  message,
-  Divider,
-  Input,
-  Modal,
-  Space,
-  Row,
-  Col,
-  Grid,
-} from "antd";
-import type { UploadFile, RcFile } from "antd/es/upload/interface";
-import {
-  InboxOutlined,
-  UploadOutlined,
-  EyeOutlined,
-  EditOutlined,
-} from "@ant-design/icons";
-import PreviewCsv from "./PreviewCsv";
-import ManualEmailInput from "./ManualEmailInput";
-import axios from "../configs/axiosConfig";
-import { useUserStore, type CustomMail } from "../store/userStore";
+import { Button, Typography, Modal, Tabs } from "antd";
+import { FileTextOutlined, MailOutlined } from "@ant-design/icons";
+import { useUserStore } from "../store/userStore";
+import MailWithCSVTab from "./dashboard/MailWithCSVTab";
+import CustomMailTab from "./dashboard/CustomMailTab";
 import "./DashboardPage.scss";
-import type { ColumnsType } from "antd/es/table";
-import { Table, Tag } from "antd";
 
 const { Title, Text } = Typography;
-const { Dragger } = Upload;
-const { TextArea } = Input;
-const { useBreakpoint } = Grid;
-
-// NOTE: Column keys must match the keys defined in CustomMailSchema
-const CUSTOM_MAIL_COLUMNS: ColumnsType<CustomMail> = [
-  {
-    title: "Email",
-    dataIndex: "emailId",
-    key: "emailId",
-    ellipsis: true,
-  },
-  {
-    title: "Company",
-    dataIndex: "company",
-    key: "company",
-    render: (text) => text || "-",
-  },
-  {
-    title: "Location",
-    dataIndex: "location",
-    key: "location",
-    render: (text) => text || "-",
-  },
-  {
-    title: "Status",
-    dataIndex: "openedStatus",
-    key: "openedStatus",
-    width: 120,
-    render: (opened: boolean) => (
-      <Tag color={opened ? "success" : "processing"}>
-        {opened ? "Opened" : "Sent"}
-      </Tag>
-    ),
-  },
-  {
-    title: "Sent At",
-    dataIndex: "createdAt",
-    key: "createdAt",
-    width: 180,
-    render: (date: string) => new Date(date).toLocaleString(),
-  },
-];
 
 const DashboardPage = () => {
-  const [uploading, setUploading] = useState(false);
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const screens = useBreakpoint();
 
   const emailSubject = useUserStore((state) => state.emailSubject);
   const emailHtml = useUserStore((state) => state.emailHtml);
-  const setEmailSubject = useUserStore((state) => state.setEmailSubject);
-  const setEmailHtml = useUserStore((state) => state.setEmailHtml);
-  const user = useUserStore((state) => state.user);
 
-
-  const handleUpload = () => {
-    if (fileList.length === 0) {
-      message.warning("Please select a file first");
-      return;
-    }
-
-    const file = fileList[0];
-    const formData = new FormData();
-    if (file.originFileObj) {
-      formData.append("csv", file.originFileObj as File);
-    } else if (file instanceof File) {
-      formData.append("csv", file);
-    }
-
-    setUploading(true);
-    axios
-      .post("/upload/csv", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then(() => {
-        message.success("File uploaded successfully");
-        setFileList([]);
-      })
-      .catch((err) => {
-        console.error("Upload error:", err);
-        message.error("Failed to upload file");
-      })
-      .finally(() => {
-        setUploading(false);
-      });
-  };
-
-  const uploadProps = {
-    onRemove: (file: UploadFile) => {
-      const index = fileList.indexOf(file);
-      const newFileList = fileList.slice();
-      newFileList.splice(index, 1);
-      setFileList(newFileList);
+  const tabItems = [
+    {
+      key: "csv",
+      label: (
+        <span>
+          <FileTextOutlined />
+          Mail with CSV
+        </span>
+      ),
+      children: <MailWithCSVTab setIsPreviewOpen={setIsPreviewOpen} />,
     },
-    beforeUpload: (file: RcFile) => {
-      setFileList([file as any]);
-      return false;
+    {
+      key: "custom",
+      label: (
+        <span>
+          <MailOutlined />
+          Custom Mail
+        </span>
+      ),
+      children: <CustomMailTab setIsPreviewOpen={setIsPreviewOpen} />,
     },
-    fileList,
-    maxCount: 1,
-    accept: ".csv",
-  };
+  ];
 
   return (
     <div className="dashboard-page">
@@ -149,108 +50,15 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      <Row gutter={[24, 24]} className="dashboard-cards">
-        <Col xs={24} lg={12}>
-          <ManualEmailInput />
-          <Card
-            title={
-              <Space>
-                <UploadOutlined />
-                <span>Upload Contacts</span>
-              </Space>
-            }
-            bordered={false}
-            className="dashboard-card"
-          >
-            <Dragger {...uploadProps} className="dragger-container">
-              <p className="ant-upload-drag-icon">
-                <InboxOutlined className="dragger-icon" />
-              </p>
-              <p className="ant-upload-text">Drag CSV file here</p>
-              <Button
-                type="primary"
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleUpload();
-                }}
-                loading={uploading}
-                disabled={fileList.length === 0}
-                className="upload-btn"
-              >
-                Upload CSV
-              </Button>
-            </Dragger>
-          </Card>
-        </Col>
-
-        <Col xs={24} lg={12}>
-          <Card
-            title={
-              <Space>
-                <EditOutlined />
-                <span>Email Content Editor</span>
-              </Space>
-            }
-            bordered={false}
-            className="dashboard-card"
-            extra={
-              <Button
-                icon={<EyeOutlined />}
-                onClick={() => setIsPreviewOpen(true)}
-                disabled={!emailHtml}
-              >
-                {!screens.xs && "Preview"}
-              </Button>
-            }
-          >
-            <Space direction="vertical" className="editor-space" size="middle">
-              <div>
-                <Text strong>Email Subject</Text>
-                <Input
-                  placeholder="Enter email subject"
-                  value={emailSubject}
-                  onChange={(e) => setEmailSubject(e.target.value)}
-                  className="subject-input"
-                />
-              </div>
-              <div>
-                <Text strong>HTML Layout / Message</Text>
-                <TextArea
-                  placeholder="Enter HTML content or plain text..."
-                  rows={6}
-                  value={emailHtml}
-                  onChange={(e) => setEmailHtml(e.target.value)}
-                  className="html-editor"
-                />
-              </div>
-            </Space>
-          </Card>
-        </Col>
-      </Row>
-
-      <Divider />
-
-      <section className="manual-emails-section">
-        <Title level={4} className="section-title">
-          Manually Sent Emails
-        </Title>
-        <Table
-          dataSource={user?.customMailSent || []}
-          columns={CUSTOM_MAIL_COLUMNS}
-          rowKey="_id"
-          pagination={{ pageSize: 5 }}
-          className="custom-table"
-          locale={{ emptyText: "No manual emails sent yet" }}
+      <div className="dashboard-tabs-container">
+        <Tabs
+          defaultActiveKey="csv"
+          items={tabItems}
+          className="dashboard-tabs"
+          size="large"
+          type="line"
         />
-      </section>
-
-      <Divider />
-
-      <Title level={4} className="section-title">
-        CSV Data Overview
-      </Title>
-      <PreviewCsv />
+      </div>
 
       <Modal
         title="Email Layout Preview"
