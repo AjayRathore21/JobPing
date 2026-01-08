@@ -1,0 +1,59 @@
+.mail-with-csv-tab {
+    .dashboard-cards {
+        margin-bottom: 32px;
+
+        @media (max-width: 768px) {
+            margin-bottom: 24px;
+        }
+
+        .dashboard-card {
+            height: 100%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            margin-bottom: 24px;
+
+            .ant-card-head {
+                @media (max-width: 768px) {
+                    padding: 0 12px;
+                }
+            }
+
+            .ant-card-body {
+                @media (max-width: 768px) {
+                    padding: 16px;
+                }
+            }
+        }
+    }
+
+    .dragger-container {
+        background: #f8fafc !important;
+        border-radius: 8px !important;
+        border: 1px dashed #cbd5e1 !important;
+    }
+
+    .upload-btn {
+        margin-top: 12px;
+    }
+
+    .editor-space {
+        width: 100%;
+    }
+
+    .subject-input {
+        margin-top: 8px;
+    }
+
+    .html-editor {
+        margin-top: 8px;
+        font-family: monospace;
+    }
+
+    .section-title {
+        margin-bottom: 24px !important;
+    }
+
+    .dragger-icon {
+        color: #1890ff;
+    }
+}

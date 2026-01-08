@@ -1,0 +1,60 @@
+.custom-mail-tab {
+    .dashboard-cards {
+        margin-bottom: 32px;
+
+        @media (max-width: 768px) {
+            margin-bottom: 24px;
+        }
+
+        .dashboard-card {
+            height: 100%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            margin-bottom: 24px;
+
+            .ant-card-head {
+                @media (max-width: 768px) {
+                    padding: 0 12px;
+                }
+            }
+
+            .ant-card-body {
+                @media (max-width: 768px) {
+                    padding: 16px;
+                }
+            }
+        }
+    }
+
+    .editor-space {
+        width: 100%;
+    }
+
+    .subject-input {
+        margin-top: 8px;
+    }
+
+    .html-editor {
+        margin-top: 8px;
+        font-family: monospace;
+    }
+
+    .manual-emails-section {
+        margin-bottom: 32px;
+
+        @media (max-width: 768px) {
+            margin-bottom: 24px;
+        }
+
+        .custom-table {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+    }
+
+    .section-title {
+        margin-bottom: 24px !important;
+    }
+}
