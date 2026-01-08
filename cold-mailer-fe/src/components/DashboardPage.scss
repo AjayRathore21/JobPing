@@ -2,56 +2,59 @@
     .dashboard-header {
         margin-bottom: 32px;
         display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
 
         @media (max-width: 768px) {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 16px;
             margin-bottom: 24px;
         }
     }
 
-    .dashboard-cards {
+    .dashboard-title {
+        margin: 0 !important;
+    }
+
+    .dashboard-tabs-container {
         margin-bottom: 32px;
 
-        @media (max-width: 768px) {
-            margin-bottom: 24px;
-        }
+        .dashboard-tabs {
+            .ant-tabs-nav {
+                background: #fff;
+                padding: 0 24px;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 
-        .dashboard-card {
-            height: 100%;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border-radius: 12px;
-            margin-bottom: 24px;
-
-            .ant-card-head {
                 @media (max-width: 768px) {
                     padding: 0 12px;
                 }
-            }
 
-            .ant-card-body {
-                @media (max-width: 768px) {
-                    padding: 16px;
+                &::before {
+                    display: none;
                 }
             }
-        }
-    }
 
-    .manual-emails-section {
-        margin-bottom: 32px;
+            .ant-tabs-tab {
+                padding: 16px 0;
+                font-size: 16px;
+                font-weight: 500;
 
-        @media (max-width: 768px) {
-            margin-bottom: 24px;
-        }
+                .ant-tabs-tab-btn {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
 
-        .custom-table {
-            background: #fff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                    .anticon {
+                        font-size: 18px;
+                    }
+                }
+
+                &-active {
+                    .ant-tabs-tab-btn {
+                        color: #1890ff;
+                    }
+                }
+            }
         }
     }
 
@@ -61,37 +64,6 @@
             max-width: 95vw;
             margin: 10px auto;
         }
-    }
-
-    .dashboard-title {
-        margin: 0 !important;
-    }
-
-    .dragger-container {
-        background: #f8fafc !important;
-        border-radius: 8px !important;
-        border: 1px dashed #cbd5e1 !important;
-    }
-
-    .upload-btn {
-        margin-top: 12px;
-    }
-
-    .editor-space {
-        width: 100%;
-    }
-
-    .subject-input {
-        margin-top: 8px;
-    }
-
-    .html-editor {
-        margin-top: 8px;
-        font-family: monospace;
-    }
-
-    .section-title {
-        margin-bottom: 24px !important;
     }
 
     .preview-content {
@@ -112,9 +84,5 @@
         color: #94a3b8;
         text-align: center;
         margin-top: 100px;
-    }
-
-    .dragger-icon {
-        color: #1890ff;
     }
 }
