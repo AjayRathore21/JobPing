@@ -3,7 +3,7 @@ const serverlessConfig = {
   useDotenv: true,
   provider: {
     name: "aws",
-    runtime: "nodejs20.x",
+    runtime: "nodejs18.x",
     region: "ap-south-1",
     stage: "prod",
     environment: {
@@ -14,8 +14,7 @@ const serverlessConfig = {
       GOOGLE_CLIENT_SECRET: "${env:GOOGLE_CLIENT_SECRET, ''}",
       JWT_SECRET_KEY: "${env:JWT_SECRET_KEY, ''}",
       FRONTEND_URL: "${env:FRONTEND_URL, ''}",
-      GOOGLE_CALLBACK_URL:
-        "${env:GOOGLE_CALLBACK_URL, ''}",
+      GOOGLE_CALLBACK_URL: "${env:GOOGLE_CALLBACK_URL, ''}",
       CLOUDINARY_CLOUD_NAME: "${env:CLOUDINARY_CLOUD_NAME, ''}",
       CLOUDINARY_API_KEY: "${env:CLOUDINARY_API_KEY, ''}",
       CLOUDINARY_API_SECRET: "${env:CLOUDINARY_API_SECRET, ''}",
