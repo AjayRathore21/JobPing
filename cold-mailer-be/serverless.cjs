@@ -3,7 +3,7 @@ const serverlessConfig = {
   useDotenv: true,
   provider: {
     name: "aws",
-    runtime: "nodejs18.x",
+    runtime: "nodejs20.x",
     region: "ap-south-1",
     stage: "prod",
     environment: {
