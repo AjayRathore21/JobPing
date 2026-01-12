@@ -107,13 +107,21 @@
 
             .user-avatar-wrapper {
                 cursor: pointer;
-                padding: 2px;
-                border: 2px solid transparent;
-                border-radius: 50%;
                 transition: $transition-smooth;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                border: 2px solid transparent;
 
                 &:hover {
                     border-color: $secondary-color;
+                }
+
+                .ant-avatar {
+                    border: 1px solid rgba(0, 0, 0, 0.05);
                 }
             }
         }
