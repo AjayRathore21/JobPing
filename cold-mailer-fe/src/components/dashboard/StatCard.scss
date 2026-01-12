@@ -1,0 +1,69 @@
+@import "../../styles/variables.scss";
+
+.stat-card {
+    @include card-modern;
+    padding: 0 !important;
+    height: 100%;
+
+    .ant-card-body {
+        padding: 24px !important;
+    }
+
+    .stat-card-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .stat-card-left {
+        .stat-title {
+            font-size: 14px;
+            color: $text-secondary;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            margin: 0 !important;
+            font-size: 32px !important;
+            font-weight: 700 !important;
+            letter-spacing: -1px;
+        }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 12px;
+            font-size: 13px;
+
+            &.up {
+                color: #10b981;
+            }
+
+            &.down {
+                color: #ef4444;
+            }
+
+            .trend-label {
+                color: $text-muted;
+                margin-left: 4px;
+            }
+        }
+    }
+
+    .stat-card-right {
+        width: 48px;
+        height: 48px;
+        border-radius: $border-radius-lg;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+
+        .stat-icon-wrapper {
+            font-size: 24px;
+        }
+    }
+}
