@@ -1,7 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Button,
-  Card,
   Upload,
   message,
   Space,
@@ -9,7 +8,6 @@ import {
   Col,
   Input,
   Typography,
-  Grid,
 } from "antd";
 import {
   InboxOutlined,
@@ -26,7 +24,6 @@ import "./MailWithCSVTab.scss";
 const { Title, Text } = Typography;
 const { Dragger } = Upload;
 const { TextArea } = Input;
-const { useBreakpoint } = Grid;
 
 interface MailWithCSVTabProps {
   setIsPreviewOpen: (open: boolean) => void;
@@ -37,7 +34,6 @@ const MailWithCSVTab: React.FC<MailWithCSVTabProps> = ({
 }) => {
   const [uploading, setUploading] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const screens = useBreakpoint();
 
   const emailSubject = useUserStore((state) => state.emailSubject);
   const emailHtml = useUserStore((state) => state.emailHtml);
@@ -96,89 +92,128 @@ const MailWithCSVTab: React.FC<MailWithCSVTabProps> = ({
 
   return (
     <div className="mail-with-csv-tab">
-      <Row gutter={[24, 24]} className="dashboard-cards">
-        <Col xs={24} lg={12}>
-          <Card
-            title={
+      <Row gutter={[32, 32]} className="composer-row">
+        <Col xs={24} lg={11}>
+          <div className="composer-card">
+            <div className="card-header">
               <Space>
-                <UploadOutlined />
-                <span>Upload Contacts</span>
+                <div className="icon-badge">
+                  <UploadOutlined />
+                </div>
+                <div>
+                  <Title level={4} style={{ margin: 0 }}>
+                    Import Contacts
+                  </Title>
+                  <Text type="secondary">
+                    Upload your CSV file with lead data
+                  </Text>
+                </div>
               </Space>
-            }
-            bordered={false}
-            className="dashboard-card"
-          >
-            <Dragger {...uploadProps} className="dragger-container">
-              <p className="ant-upload-drag-icon">
-                <InboxOutlined className="dragger-icon" />
-              </p>
-              <p className="ant-upload-text">Drag CSV file here</p>
+            </div>
+
+            <div className="card-body">
+              <Dragger {...uploadProps}>
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">
+                  Click or drag file to this area to upload
+                </p>
+                <p className="ant-upload-hint">
+                  Support for a single .csv file only.
+                </p>
+              </Dragger>
+
               <Button
                 type="primary"
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleUpload();
-                }}
+                size="large"
+                block
+                shape="round"
+                onClick={handleUpload}
                 loading={uploading}
                 disabled={fileList.length === 0}
-                className="upload-btn"
+                className="action-btn"
+                style={{ marginTop: 24 }}
               >
-                Upload CSV
+                Upload & Process CSV
               </Button>
-            </Dragger>
-          </Card>
+            </div>
+          </div>
         </Col>
 
-        <Col xs={24} lg={12}>
-          <Card
-            title={
+        <Col xs={24} lg={13}>
+          <div className="composer-card">
+            <div
+              className="card-header"
+              style={{
+                justifyContent: "space-between",
+                display: "flex",
+                width: "100%",
+                alignItems: "center",
+              }}
+            >
               <Space>
-                <EditOutlined />
-                <span>Email Content Editor</span>
+                <div
+                  className="icon-badge"
+                  style={{ backgroundColor: "#FFD700", color: "#000" }}
+                >
+                  <EditOutlined />
+                </div>
+                <div>
+                  <Title level={4} style={{ margin: 0 }}>
+                    Email Composer
+                  </Title>
+                  <Text type="secondary">Draft your message and templates</Text>
+                </div>
               </Space>
-            }
-            bordered={false}
-            className="dashboard-card"
-            extra={
+
               <Button
+                shape="circle"
                 icon={<EyeOutlined />}
                 onClick={() => setIsPreviewOpen(true)}
                 disabled={!emailHtml}
-              >
-                {!screens.xs && "Preview"}
-              </Button>
-            }
-          >
-            <Space direction="vertical" className="editor-space" size="middle">
-              <div>
-                <Text strong>Email Subject</Text>
+              />
+            </div>
+
+            <div className="card-body">
+              <div className="input-group">
+                <Text strong className="input-label">
+                  Subject Line
+                </Text>
                 <Input
-                  placeholder="Enter email subject"
+                  placeholder="e.g. Collaboration Opportunity with JobPing"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
-                  className="subject-input"
+                  className="modern-input"
                 />
               </div>
-              <div>
-                <Text strong>HTML Layout / Message</Text>
+
+              <div className="input-group" style={{ marginTop: 24 }}>
+                <Text strong className="input-label">
+                  Message Body (HTML Supported)
+                </Text>
                 <TextArea
-                  placeholder="Enter HTML content or plain text..."
+                  placeholder="Hi {{name}}, I noticed your work at {{company}}..."
                   rows={6}
                   value={emailHtml}
                   onChange={(e) => setEmailHtml(e.target.value)}
-                  className="html-editor"
+                  className="modern-textarea"
                 />
               </div>
-            </Space>
-          </Card>
+            </div>
+          </div>
         </Col>
       </Row>
 
-      <Title level={4} className="section-title">
-        CSV Data Overview
-      </Title>
-      <PreviewCsv />
+      <div className="data-overview-section">
+        <div className="section-header">
+          <Title level={3}>Contacts Database</Title>
+          <Text type="secondary">
+            Manage your uploaded files and preview data before sending.
+          </Text>
+        </div>
+        <PreviewCsv />
+      </div>
     </div>
   );
 };

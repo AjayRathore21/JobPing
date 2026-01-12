@@ -101,9 +101,7 @@ const PreviewCsvData = ({
       rowObj[previewHeaders[cellIndex]] = cell;
     });
 
-    // Find "id" column case-insensitively for the key or use the first column as per user's latest change
     const key = rowObj[previewHeaders[0]];
-
     rowObj.key = key;
     return rowObj;
   });
@@ -123,7 +121,7 @@ const PreviewCsvData = ({
   // Handle range selection
   const handleApplyRange = () => {
     if (startIndex !== null && endIndex !== null) {
-      const start = startIndex - 1; // preview data is 0 index based
+      const start = startIndex - 1;
       const end = endIndex - 1;
 
       if (start <= end && start >= 0 && end < previewTableData.length) {
@@ -192,7 +190,7 @@ const PreviewCsvData = ({
       title: "Actions",
       key: "actions",
       fixed: "right",
-      width: 250,
+      width: 150,
       render: (_, record: Record<string, string>) => {
         const key = record.key;
         const { isSent, isFailed } = getRowStatus(record);
@@ -204,6 +202,7 @@ const PreviewCsvData = ({
                 <Button
                   size="small"
                   type="primary"
+                  shape="circle"
                   icon={<MailOutlined />}
                   onClick={() => handleSingleSend(key)}
                   loading={resendingKey === key}
@@ -214,6 +213,7 @@ const PreviewCsvData = ({
               <Tooltip title="Resend Email">
                 <Button
                   size="small"
+                  shape="circle"
                   icon={<SendOutlined />}
                   onClick={() => handleSingleSend(key)}
                   loading={resendingKey === key}
@@ -226,39 +226,39 @@ const PreviewCsvData = ({
                   size="small"
                   type="primary"
                   ghost
+                  shape="circle"
                   icon={<ReloadOutlined />}
                   onClick={() => handleSingleSend(key)}
                   loading={resendingKey === key}
                 />
               </Tooltip>
             )}
+            {(() => {
+              const user = useUserStore.getState().user;
+              const opened = user?.openedEmails?.find(
+                (oe) =>
+                  oe.csvId === selectedCsv?._id &&
+                  String(oe.rowId) === String(record.key)
+              );
+
+              if (opened) {
+                return (
+                  <Tooltip
+                    title={`Opened at: ${new Date(
+                      opened.openedAt
+                    ).toLocaleString()}`}
+                  >
+                    <EyeOutlined
+                      className="status-eye-icon"
+                      style={{ color: "#5D5DFF" }}
+                    />
+                  </Tooltip>
+                );
+              }
+              return null;
+            })()}
           </Space>
         );
-      },
-    },
-    {
-      title: "Status",
-      key: "status",
-      fixed: "right",
-      width: 100,
-      render: (_, record: Record<string, string>) => {
-        const user = useUserStore.getState().user;
-        const opened = user?.openedEmails?.find(
-          (oe) =>
-            oe.csvId === selectedCsv?._id &&
-            String(oe.rowId) === String(record.key)
-        );
-
-        if (opened) {
-          return (
-            <Tooltip
-              title={`Opened at: ${new Date(opened.openedAt).toLocaleString()}`}
-            >
-              <EyeOutlined className="status-eye-icon" />
-            </Tooltip>
-          );
-        }
-        return null;
       },
     },
   ];
@@ -268,16 +268,18 @@ const PreviewCsvData = ({
       key={selectedCsv?._id}
       title={
         <div className="preview-modal-header">
-          <Title level={4}>Preview: {selectedCsv?.name}</Title>
+          <Title level={4} style={{ margin: 0 }}>
+            {selectedCsv?.name}
+          </Title>
           <Text type="secondary">
-            Review and select records for your outreach
+            Review records and select distribution mode below.
           </Text>
         </div>
       }
       open={isOpen}
       onCancel={onClose}
       footer={[
-        <Button key="back" onClick={onClose} size="large">
+        <Button key="back" onClick={onClose} size="large" shape="round">
           Cancel
         </Button>,
         <Button
@@ -286,88 +288,99 @@ const PreviewCsvData = ({
           onClick={handleSendEmail}
           loading={sendingEmail}
           size="large"
-          icon={<MailOutlined />}
-          className="send-btn-main"
+          shape="round"
+          icon={<SendOutlined />}
+          className="send-btn-pd"
         >
-          Send Emails Now
+          {selectedRowKeys.length > 0
+            ? `Send to ${selectedRowKeys.length} Selected`
+            : "Send to All Records"}
         </Button>,
       ]}
-      width={screens.xs ? "95%" : 1100}
-      className="responsive-preview-modal"
+      width={screens.xs ? "95%" : 1200}
+      className="modern-modal csv-preview-modal"
       centered
     >
       {modalLoading ? (
-        <div className="loading-container">
+        <div
+          className="loading-container"
+          style={{ textAlign: "center", padding: "60px 0" }}
+        >
           <Spin size="large" />
-          <Text className="loading-text">Loading CSV...</Text>
+          <div style={{ marginTop: 16 }}>
+            <Text type="secondary">Parsing your data...</Text>
+          </div>
         </div>
       ) : previewData.length > 0 ? (
-        <>
-          {/* Selection Controls */}
-          <div className="selection-controls">
-            <Space wrap>
+        <div className="modal-inner-content">
+          <div className="selection-bar glass-card">
+            <Space wrap size="large">
               <Checkbox
                 checked={
                   selectedRowKeys.length === previewData.length &&
                   previewData.length > 0
                 }
                 onChange={handleSelectAll}
+                className="modern-checkbox"
               >
-                Select All
+                Select All ({previewData.length})
               </Checkbox>
 
-              {!screens.xs && <span className="divider-text">|</span>}
-
-              <Space>
-                <Text>Start Index:</Text>
-                <InputNumber
-                  min={1}
-                  max={previewData.length}
-                  value={startIndex}
-                  onChange={(value) => setStartIndex(value)}
-                  className="index-input"
-                />
-              </Space>
-
-              <Space>
-                <Text>End Index:</Text>
-                <InputNumber
-                  min={1}
-                  max={previewData.length}
-                  value={endIndex}
-                  onChange={(value) => setEndIndex(value)}
-                  className="index-input"
-                />
-              </Space>
-
-              <Button onClick={handleApplyRange} size="small" type="default">
-                Apply Range
-              </Button>
-
-              <Text type="secondary" className="total-rows-text">
-                ({previewData.length} total rows)
-              </Text>
+              <div className="range-controls">
+                <Space>
+                  <Text strong>Filter Range:</Text>
+                  <InputNumber
+                    min={1}
+                    max={previewData.length}
+                    value={startIndex}
+                    onChange={(value) => setStartIndex(value)}
+                    className="modern-input-number"
+                  />
+                  <Text>to</Text>
+                  <InputNumber
+                    min={1}
+                    max={previewData.length}
+                    value={endIndex}
+                    onChange={(value) => setEndIndex(value)}
+                    className="modern-input-number"
+                  />
+                  <Button
+                    onClick={handleApplyRange}
+                    shape="round"
+                    type="default"
+                  >
+                    Apply
+                  </Button>
+                </Space>
+              </div>
             </Space>
           </div>
 
-          <Table
-            dataSource={previewTableData}
-            columns={previewColumns}
-            rowKey="key"
-            rowSelection={rowSelection}
-            pagination={{ pageSize: 10 }}
-            scroll={{ x: true }}
-            size="small"
-            rowClassName={(record) => {
-              const { isSent, isFailed } = getRowStatus(record);
-              if (isSent) return "row-sent";
-              if (isFailed) return "row-failed";
-              return "";
-            }}
-          />
-        </>
+          <div className="table-wrapper">
+            <Table
+              dataSource={previewTableData}
+              columns={previewColumns}
+              rowKey="key"
+              rowSelection={rowSelection}
+              pagination={{ pageSize: 8, showSizeChanger: false }}
+              scroll={{ x: true, y: 500 }}
+              size="middle"
+              className="custom-table"
+              rowClassName={(record) => {
+                const { isSent, isFailed } = getRowStatus(record);
+                if (isSent) return "row-sent";
+                if (isFailed) return "row-failed";
+                return "";
+              }}
+            />
+          </div>
+        </div>
       ) : (
-        <Alert message="No data found in CSV file" type="info" showIcon />
+        <Alert
+          message="This CSV file seems to be empty or misformatted."
+          type="warning"
+          showIcon
+        />
       )}
     </Modal>
   );

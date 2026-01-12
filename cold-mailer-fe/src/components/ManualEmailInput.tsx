@@ -1,6 +1,16 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Space, message, Select } from "antd";
-import { SendOutlined } from "@ant-design/icons";
+import {
+  Form,
+  Input,
+  Button,
+  Space,
+  message,
+  Select,
+  Typography,
+  Row,
+  Col,
+} from "antd";
+import { SendOutlined, UserAddOutlined } from "@ant-design/icons";
 import axios from "../configs/axiosConfig";
 import {
   useUserStore,
@@ -8,6 +18,8 @@ import {
   type UserInfo,
 } from "../store/userStore";
 import "./ManualEmailInput.scss";
+
+const { Title, Text } = Typography;
 
 const ManualEmailInput: React.FC = () => {
   const [form] = Form.useForm();
@@ -40,7 +52,6 @@ const ManualEmailInput: React.FC = () => {
       message.success("Emails sent successfully!");
       form.resetFields();
 
-      // Update global user state with new custom mails and stats
       if (user) {
         const customMails = response.data.customMails as CustomMail[];
         const updatedUser: UserInfo = {
@@ -66,54 +77,101 @@ const ManualEmailInput: React.FC = () => {
   };
 
   return (
-    <div className="manual-email-container">
-      <h2 className="manual-email-title">Send Manual Emails</h2>
-      <Form form={form} layout="vertical" onFinish={onFinish}>
-        <Form.Item
-          name="emails"
-          label="Email Addresses"
-          rules={[
-            { required: true, message: "Please input at least one email!" },
-          ]}
-        >
-          <Select
-            mode="tags"
-            className="email-select"
-            placeholder="Type email and press enter"
-            tokenSeparators={[",", " "]}
-          />
-        </Form.Item>
-
-        <Space className="input-group-space" align="baseline">
-          <Form.Item
-            name="companyName"
-            label="Company Name (Optional)"
-            className="flex-input"
-          >
-            <Input placeholder="Acme Inc" />
-          </Form.Item>
-          <Form.Item
-            name="location"
-            label="Location (Optional)"
-            className="flex-input"
-          >
-            <Input placeholder="New York" />
-          </Form.Item>
+    <div className="manual-email-card glass-card">
+      <div className="card-header">
+        <Space>
+          <div className="icon-badge">
+            <UserAddOutlined />
+          </div>
+          <div>
+            <Title level={4} style={{ margin: 0 }}>
+              Direct Outreach
+            </Title>
+            <Text type="secondary">
+              Send individual messages to specific leads
+            </Text>
+          </div>
         </Space>
+      </div>
 
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={loading}
-            icon={<SendOutlined />}
-            size="large"
-            className="submit-btn"
+      <div className="card-body">
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          className="modern-form"
+        >
+          <Form.Item
+            name="emails"
+            label={
+              <Text strong className="input-label">
+                Recipients
+              </Text>
+            }
+            rules={[
+              { required: true, message: "Please input at least one email!" },
+            ]}
           >
-            Send Emails
-          </Button>
-        </Form.Item>
-      </Form>
+            <Select
+              mode="tags"
+              className="modern-select"
+              placeholder="Enter email addresses..."
+              tokenSeparators={[",", " "]}
+              size="large"
+            />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="companyName"
+                label={
+                  <Text strong className="input-label">
+                    Company
+                  </Text>
+                }
+              >
+                <Input
+                  placeholder="Acme Inc"
+                  className="modern-input"
+                  size="large"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="location"
+                label={
+                  <Text strong className="input-label">
+                    Location
+                  </Text>
+                }
+              >
+                <Input
+                  placeholder="San Francisco"
+                  className="modern-input"
+                  size="large"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item style={{ marginBottom: 0, marginTop: 12 }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              icon={<SendOutlined />}
+              size="large"
+              block
+              shape="round"
+              className="action-btn"
+            >
+              Dispatch Emails
+            </Button>
+          </Form.Item>
+        </Form>
+      </div>
     </div>
   );
 };

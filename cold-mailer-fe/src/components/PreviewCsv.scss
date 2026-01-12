@@ -1,101 +1,118 @@
-.row-sent td {
-    background-color: #d9f7be !important;
-}
+@import "../styles/variables.scss";
 
-.row-failed td {
-    background-color: #fff1f0 !important;
-}
+.custom-table {
+    background: transparent !important;
 
-.row-sent:hover td,
-.row-failed:hover td {
-    filter: brightness(0.95) !important;
-}
-
-.preview-modal-header {
-    padding: 16px 0;
-
-    .ant-typography {
-        margin: 0 !important;
+    .ant-table {
+        background: transparent !important;
+        font-family: 'Outfit', sans-serif;
     }
-}
 
-.selection-controls {
-    margin-bottom: 16px;
-    padding: 16px;
-    background: #f8fafc;
-    border-radius: 8px;
-    border: 1px solid #f1f5f9;
+    .ant-table-thead>tr>th {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+        color: $text-muted !important;
+        font-weight: 500 !important;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        padding: 20px 24px !important;
 
-    @media (max-width: 576px) {
-        padding: 12px;
+        &::before {
+            display: none !important;
+        }
+    }
 
-        .ant-space {
-            width: 100%;
-            justify-content: space-between;
+    .ant-table-tbody>tr>td {
+        padding: 20px 24px !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.03) !important;
+        color: $text-primary;
+        font-weight: 500;
+    }
+
+    .ant-table-tbody>tr {
+        transition: $transition-smooth;
+
+        &:hover>td {
+            background: rgba(0, 0, 0, 0.02) !important;
+        }
+    }
+
+    .ant-table-pagination {
+        padding: 0 24px 24px;
+        margin: 24px 0 0 !important;
+    }
+
+    .ant-pagination-item-active {
+        background: $primary-color !important;
+        border-color: $primary-color !important;
+
+        a {
+            color: #ffffff !important;
         }
     }
 }
 
-.index-input {
-    width: 80px;
-}
-
-.divider-text {
-    margin-left: 16px;
-}
-
-.total-rows-text {
-    @media (max-width: 576px) {
-        display: block;
-        margin-top: 8px;
+.csv-preview-modal {
+    .ant-modal-content {
+        background: $background-color !important;
+        border-radius: $border-radius-xl !important;
+        padding: 0 !important;
+        overflow: hidden;
     }
-}
 
-.send-btn-main {
-    min-width: 160px;
-}
+    .ant-modal-header {
+        padding: 32px 32px 16px !important;
+        margin: 0 !important;
+        background: transparent !important;
+    }
 
-.status-eye-icon {
-    color: #52c41a;
-    font-size: 18px;
-}
+    .ant-modal-body {
+        padding: 0 32px 32px !important;
+    }
 
-.loading-container {
-    text-align: center;
-    padding: 40px;
-}
+    .selection-bar {
+        padding: 16px 24px;
+        margin-bottom: 24px;
+        border-radius: $border-radius-lg;
+        background: rgba(255, 255, 255, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
 
-.loading-text {
-    display: block;
-    margin-top: 16px;
-}
-
-// Global modal overrides for responsiveness
-.responsive-preview-modal {
-    @media (max-width: 768px) {
-        max-width: 95vw;
-        margin: 10px auto;
-
-        .ant-modal-footer {
-            display: flex;
-            flex-direction: column-reverse;
-            gap: 12px;
-
-            .ant-btn {
-                margin: 0 !important;
-                width: 100%;
+        .modern-checkbox {
+            .ant-checkbox-inner {
+                border-radius: 4px;
             }
         }
-    }
 
-    .custom-table {
-        .ant-table-thead>tr>th {
-            background: #f8fafc;
-            font-weight: 600;
+        .modern-input-number {
+            border-radius: 8px;
+            width: 80px;
         }
     }
 
-    .rate-progress {
-        width: 100px;
+    .table-wrapper {
+        background: #ffffff;
+        border-radius: $border-radius-lg;
+        padding: 12px;
+        box-shadow: $shadow-soft;
+        border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+}
+
+.row-sent {
+    background: rgba(16, 185, 129, 0.05) !important;
+
+    &:hover>td {
+        background: rgba(16, 185, 129, 0.08) !important;
+    }
+}
+
+.row-failed {
+    background: rgba(239, 68, 68, 0.05) !important;
+
+    &:hover>td {
+        background: rgba(239, 68, 68, 0.08) !important;
     }
 }

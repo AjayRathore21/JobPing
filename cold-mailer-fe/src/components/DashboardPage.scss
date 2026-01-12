@@ -1,88 +1,113 @@
-.dashboard-page {
-    .dashboard-header {
-        margin-bottom: 32px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
+@import "../styles/variables.scss";
 
-        @media (max-width: 768px) {
-            margin-bottom: 24px;
+.dashboard-page {
+    .dashboard-welcome {
+        margin-bottom: 40px;
+
+        h1 {
+            margin-bottom: 8px !important;
+            font-weight: 700 !important;
+            letter-spacing: -1px;
+        }
+
+        span {
+            font-size: 16px;
         }
     }
 
-    .dashboard-title {
-        margin: 0 !important;
+    .stats-grid {
+        margin-bottom: 40px;
     }
 
-    .dashboard-tabs-container {
-        margin-bottom: 32px;
+    .dashboard-main-content {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: $border-radius-xl;
+        padding: 32px;
+        box-shadow: $shadow-soft;
 
-        .dashboard-tabs {
+        .custom-dashboard-tabs {
             .ant-tabs-nav {
-                background: #fff;
-                padding: 0 24px;
-                border-radius: 12px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-
-                @media (max-width: 768px) {
-                    padding: 0 12px;
-                }
+                margin-bottom: 32px !important;
 
                 &::before {
-                    display: none;
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
                 }
             }
 
             .ant-tabs-tab {
-                padding: 16px 0;
-                font-size: 16px;
+                padding: 12px 0 !important;
                 font-weight: 500;
-
-                .ant-tabs-tab-btn {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-
-                    .anticon {
-                        font-size: 18px;
-                    }
-                }
+                font-size: 16px;
+                color: $text-secondary;
+                transition: $transition-smooth;
 
                 &-active {
                     .ant-tabs-tab-btn {
-                        color: #1890ff;
+                        color: $primary-color !important;
+                        font-weight: 600;
                     }
                 }
+
+                svg {
+                    margin-right: 8px;
+                }
+            }
+
+            .ant-tabs-ink-bar {
+                background: $primary-color !important;
+                height: 3px !important;
+                border-radius: 3px 3px 0 0;
             }
         }
     }
+}
 
-    // Modal responsiveness
-    .ant-modal {
-        @media (max-width: 768px) {
-            max-width: 95vw;
-            margin: 10px auto;
+.modern-modal {
+    .ant-modal-content {
+        background: rgba(244, 245, 240, 0.9) !important;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: $border-radius-xl !important;
+        padding: 32px !important;
+        box-shadow: $shadow-medium;
+    }
+
+    .ant-modal-header {
+        background: transparent !important;
+        margin-bottom: 24px !important;
+
+        .ant-modal-title {
+            font-size: 24px !important;
+            font-weight: 700 !important;
         }
     }
 
     .preview-content {
-        border: 1px solid #f1f5f9;
-        padding: 24px;
-        min-height: 300px;
-        border-radius: 8px;
-        background: #fff;
-    }
+        .preview-info-chip {
+            background: rgba(0, 0, 0, 0.04);
+            padding: 12px 20px;
+            border-radius: $border-radius-lg;
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            align-items: center;
 
-    .preview-header {
-        margin-bottom: 16px;
-        border-bottom: 1px solid #f1f5f9;
-        padding-bottom: 12px;
-    }
+            span:first-child {
+                min-width: 60px;
+            }
+        }
 
-    .preview-placeholder {
-        color: #94a3b8;
-        text-align: center;
-        margin-top: 100px;
+        .email-body-preview {
+            background: #ffffff;
+            padding: 32px;
+            border-radius: $border-radius-lg;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            min-height: 200px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
     }
 }

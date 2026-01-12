@@ -1,29 +1,107 @@
-.auth-form-container {
-    max-width: 400px;
-    margin: 40px auto;
-    padding: 24px;
-    box-shadow: 0 2px 8px #f0f1f2;
-    border-radius: 8px;
-    background: #fff;
-}
+@import "../styles/variables.scss";
 
-.auth-form-title {
-    text-align: center;
-}
-
-.auth-form-link {
-    text-align: center;
-    margin-top: 16px;
-}
-
-.google-login-btn {
+.auth-page-wrapper {
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    padding: 24px;
+    background: transparent;
+
+    .auth-card {
+        @include glass;
+        width: 100%;
+        max-width: 440px;
+        padding: 48px;
+        border-radius: $border-radius-xl;
+        box-shadow: $shadow-deep;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .auth-header {
+        margin-bottom: 32px;
+
+        .brand-logo {
+            margin-bottom: 0 !important;
+            font-weight: 800 !important;
+            letter-spacing: -1px;
+        }
+
+        .auth-title {
+            margin-top: 24px !important;
+            font-weight: 700 !important;
+        }
+    }
+
+    .modern-auth-form {
+        text-align: left;
+
+        .ant-form-item-label {
+            padding-bottom: 8px !important;
+
+            label {
+                font-weight: 600;
+                color: $text-secondary;
+                font-size: 13px;
+            }
+        }
+
+        .modern-input {
+            border-radius: 12px !important;
+            border: 1px solid rgba(0, 0, 0, 0.08) !important;
+            padding: 10px 16px !important;
+
+            &:focus,
+            &:hover {
+                border-color: $primary-color !important;
+            }
+        }
+    }
+
+    .auth-btn {
+        height: 52px !important;
+        font-weight: 600 !important;
+        background: #000 !important;
+        border-color: #000 !important;
+
+        &:hover {
+            background: #333 !important;
+        }
+    }
+
+    .google-btn {
+        height: 52px !important;
+        border-radius: 100px !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500 !important;
+
+        &:hover {
+            background: #fafafa !important;
+            border-color: rgba(0, 0, 0, 0.2) !important;
+        }
+    }
+
+    .auth-footer {
+        margin-top: 32px;
+        font-size: 14px;
+
+        .auth-toggle-link {
+            font-weight: 600;
+            color: $primary-color;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
 }
 
-.auth-link-container {
-    margin-top: 16px;
-    text-align: center;
+.ant-divider-inner-text {
+    font-size: 12px !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }

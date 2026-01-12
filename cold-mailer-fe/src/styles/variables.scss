@@ -1,0 +1,42 @@
+// Design Tokens
+$primary-color: #000000;
+$secondary-color: #FFD700;
+$accent-color: #5D5DFF;
+$background-color: #F4F5F0;
+$surface-color: rgba(255, 255, 255, 0.82);
+$glass-white: rgba(255, 255, 255, 0.4);
+
+$text-primary: #1A1A1A;
+$text-secondary: #666666;
+$text-muted: #999999;
+
+$border-radius-xl: 16px;
+$border-radius-lg: 16px;
+$border-radius-md: 16px;
+$border-radius-sm: 12px;
+
+$shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.04);
+$shadow-medium: 0 12px 40px rgba(0, 0, 0, 0.08);
+$shadow-deep: 0 20px 60px rgba(0, 0, 0, 0.12);
+
+$transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+@mixin glass {
+  background: $surface-color;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+@mixin card-modern {
+  @include glass;
+  border-radius: $border-radius-lg;
+  padding: 24px;
+  box-shadow: $shadow-soft;
+  transition: $transition-smooth;
+
+  &:hover {
+    box-shadow: $shadow-medium;
+    transform: translateY(-2px);
+  }
+}

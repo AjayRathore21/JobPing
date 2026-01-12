@@ -1,16 +1,5 @@
-import {
-  Card,
-  Typography,
-  Divider,
-  Table,
-  Tag,
-  Space,
-  Row,
-  Col,
-  Input,
-  Button,
-  Grid,
-} from "antd";
+import React from "react";
+import { Typography, Table, Tag, Space, Row, Col, Input, Button } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { EditOutlined, EyeOutlined } from "@ant-design/icons";
 import ManualEmailInput from "../ManualEmailInput";
@@ -19,9 +8,7 @@ import "./CustomMailTab.scss";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
-const { useBreakpoint } = Grid;
 
-// NOTE: Column keys must match the keys defined in CustomMailSchema
 const CUSTOM_MAIL_COLUMNS: ColumnsType<CustomMail> = [
   {
     title: "Email",
@@ -47,7 +34,10 @@ const CUSTOM_MAIL_COLUMNS: ColumnsType<CustomMail> = [
     key: "openedStatus",
     width: 120,
     render: (opened: boolean) => (
-      <Tag color={opened ? "success" : "processing"}>
+      <Tag
+        color={opened ? "success" : "processing"}
+        style={{ borderRadius: "100px", padding: "0 12px" }}
+      >
         {opened ? "Opened" : "Sent"}
       </Tag>
     ),
@@ -57,7 +47,9 @@ const CUSTOM_MAIL_COLUMNS: ColumnsType<CustomMail> = [
     dataIndex: "createdAt",
     key: "createdAt",
     width: 180,
-    render: (date: string) => new Date(date).toLocaleString(),
+    render: (date: string) => (
+      <Text type="secondary">{new Date(date).toLocaleString()}</Text>
+    ),
   },
 ];
 
@@ -71,75 +63,94 @@ const CustomMailTab: React.FC<CustomMailTabProps> = ({ setIsPreviewOpen }) => {
   const emailHtml = useUserStore((state) => state.emailHtml);
   const setEmailSubject = useUserStore((state) => state.setEmailSubject);
   const setEmailHtml = useUserStore((state) => state.setEmailHtml);
-  const screens = useBreakpoint();
 
   return (
     <div className="custom-mail-tab">
-      <Row gutter={[24, 24]} className="dashboard-cards">
-        <Col xs={24} lg={12}>
+      <Row gutter={[32, 32]} className="composer-row">
+        <Col xs={24} lg={11}>
           <ManualEmailInput />
         </Col>
 
-        <Col xs={24} lg={12}>
-          <Card
-            title={
+        <Col xs={24} lg={13}>
+          <div className="composer-card">
+            <div
+              className="card-header"
+              style={{
+                justifyContent: "space-between",
+                display: "flex",
+                width: "100%",
+                alignItems: "center",
+              }}
+            >
               <Space>
-                <EditOutlined />
-                <span>Email Content Editor</span>
+                <div
+                  className="icon-badge"
+                  style={{ backgroundColor: "#FFD700", color: "#000" }}
+                >
+                  <EditOutlined />
+                </div>
+                <div>
+                  <Title level={4} style={{ margin: 0 }}>
+                    Email Composer
+                  </Title>
+                  <Text type="secondary">Draft your message and templates</Text>
+                </div>
               </Space>
-            }
-            bordered={false}
-            className="dashboard-card"
-            extra={
+
               <Button
+                shape="circle"
                 icon={<EyeOutlined />}
                 onClick={() => setIsPreviewOpen(true)}
                 disabled={!emailHtml}
-              >
-                {!screens.xs && "Preview"}
-              </Button>
-            }
-          >
-            <Space direction="vertical" className="editor-space" size="middle">
-              <div>
-                <Text strong>Email Subject</Text>
+              />
+            </div>
+
+            <div className="card-body">
+              <div className="input-group">
+                <Text strong className="input-label">
+                  Subject Line
+                </Text>
                 <Input
-                  placeholder="Enter email subject"
+                  placeholder="e.g. Collaboration Opportunity"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
-                  className="subject-input"
+                  className="modern-input"
                 />
               </div>
-              <div>
-                <Text strong>HTML Layout / Message</Text>
+
+              <div className="input-group" style={{ marginTop: 24 }}>
+                <Text strong className="input-label">
+                  Message Body
+                </Text>
                 <TextArea
-                  placeholder="Enter HTML content or plain text..."
+                  placeholder="Type your personal message here..."
                   rows={6}
                   value={emailHtml}
                   onChange={(e) => setEmailHtml(e.target.value)}
-                  className="html-editor"
+                  className="modern-textarea"
                 />
               </div>
-            </Space>
-          </Card>
+            </div>
+          </div>
         </Col>
       </Row>
 
-      <Divider />
-
-      <section className="manual-emails-section">
-        <Title level={4} className="section-title">
-          Manually Sent Emails
-        </Title>
+      <div className="data-overview-section">
+        <div className="section-header">
+          <Title level={3}>Manually Sent Emails</Title>
+          <Text type="secondary">
+            Track individual outreach messages and their status.
+          </Text>
+        </div>
         <Table
           dataSource={user?.customMailSent || []}
           columns={CUSTOM_MAIL_COLUMNS}
           rowKey="_id"
-          pagination={{ pageSize: 5 }}
+          pagination={{ pageSize: 8 }}
           className="custom-table"
           locale={{ emptyText: "No manual emails sent yet" }}
         />
-      </section>
+      </div>
     </div>
   );
 };
