@@ -1,5 +1,6 @@
-import { Form, Input, Button, Typography, message, Divider } from "antd";
-import { GoogleOutlined } from "@ant-design/icons";
+import React, { useEffect } from "react";
+import { Form, Input, Button, Typography, message, Divider, Space } from "antd";
+import { GoogleOutlined, LoginOutlined } from "@ant-design/icons";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 import axios from "../configs/axiosConfig";
 import { AxiosError } from "axios";
@@ -7,7 +8,8 @@ import "./authForm.scss";
 import { selectSetUser, useUserStore } from "../store/userStore";
 import { setTokenToLS } from "../HelperMethods";
 import AuthCheck from "../hooks/Authcheck";
-import { useEffect } from "react";
+
+const { Title, Text } = Typography;
 
 const LoginPage = () => {
   const isAuthenticated = AuthCheck();
@@ -15,7 +17,6 @@ const LoginPage = () => {
   const setUser = useUserStore(selectSetUser);
   const [searchParams] = useSearchParams();
 
-  // Check for OAuth error in URL
   useEffect(() => {
     const error = searchParams.get("error");
     if (error === "oauth_failed") {
@@ -23,7 +24,6 @@ const LoginPage = () => {
     }
   }, [searchParams]);
 
-  // Redirect to dashboard if already logged in
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -36,71 +36,102 @@ const LoginPage = () => {
       };
       const response = await axios.post("/auth/login", payload);
       const { user, token } = response.data;
-      console.log("Login success:", response.data);
-      // Store user information in Zustand
       setUser(user);
       setTokenToLS(token);
-      message.success("Login successful!");
-
-      setTimeout(() => {
-        navigate(
-          "/dashboard" // Replace with the actual route you want to navigate to after login
-        );
-      }, 1000);
-      // Optionally handle login success (e.g., redirect, store token)
+      message.success("Welcome back!");
+      navigate("/dashboard");
     } catch (error) {
       const axiosError = error as AxiosError<{ message?: string }>;
-      console.error("Login error:", axiosError.response?.data?.message);
-
       message.error(axiosError.response?.data?.message || "An error occurred");
     }
   };
 
   const handleGoogleLogin = () => {
     const backendUrl = import.meta.env.VITE_BASE_URL;
-    const googleAuthUrl = `${backendUrl}/auth/google`;
-
-    window.location.href = googleAuthUrl;
+    window.location.href = `${backendUrl}/auth/google`;
   };
 
   return (
-    <div className="auth-form-container">
-      <Typography.Title level={2} className="auth-form-title">
-        Login
-      </Typography.Title>
-      <Form layout="vertical" onFinish={onFinish}>
-        <Form.Item
-          label="Email"
-          name="email"
-          rules={[{ required: true, message: "Please input your email!" }]}
+    <div className="auth-page-wrapper">
+      <div className="auth-card glass-card">
+        <div className="auth-header">
+          <div className="logo-section">
+            <Title level={2} className="brand-logo">
+              JobPing
+            </Title>
+            <Text type="secondary">The ultimate tool for cold outreach</Text>
+          </div>
+          <Title level={3} className="auth-title">
+            Log in to your account
+          </Title>
+        </div>
+
+        <Form
+          layout="vertical"
+          onFinish={onFinish}
+          className="modern-auth-form"
         >
-          <Input type="email" placeholder="Email" />
-        </Form.Item>
-        <Form.Item
-          label="Password"
-          name="password"
-          rules={[{ required: true, message: "Please input your password!" }]}
+          <Form.Item
+            label="Email Address"
+            name="email"
+            rules={[{ required: true, message: "Please input your email!" }]}
+          >
+            <Input
+              type="email"
+              placeholder="name@company.com"
+              size="large"
+              className="modern-input"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[{ required: true, message: "Please input your password!" }]}
+          >
+            <Input.Password
+              placeholder="Enter your password"
+              size="large"
+              className="modern-input"
+            />
+          </Form.Item>
+
+          <Form.Item style={{ marginTop: 24 }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              size="large"
+              shape="round"
+              icon={<LoginOutlined />}
+              className="auth-btn"
+            >
+              Sign In
+            </Button>
+          </Form.Item>
+        </Form>
+
+        <Divider plain>
+          <Text type="secondary">or continue with</Text>
+        </Divider>
+
+        <Button
+          icon={<GoogleOutlined />}
+          onClick={handleGoogleLogin}
+          block
+          size="large"
+          shape="round"
+          className="google-btn"
         >
-          <Input.Password placeholder="Password" />
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit" block>
-            Login
-          </Button>
-        </Form.Item>
-      </Form>
-      <Divider>or</Divider>
-      <Button
-        icon={<GoogleOutlined />}
-        onClick={handleGoogleLogin}
-        block
-        size="large"
-        className="google-login-btn"
-      >
-        Sign in with Google
-      </Button>
-      <div className="auth-form-link auth-link-container">
-        <Link to="/signup">Don't have an account? Sign up</Link>
+          Google Account
+        </Button>
+
+        <div className="auth-footer">
+          <Text type="secondary">New here? </Text>
+          <Link to="/signup" className="auth-toggle-link">
+            Create an account
+          </Link>
+        </div>
       </div>
     </div>
   );
