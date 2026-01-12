@@ -55,8 +55,8 @@
 
 .csv-preview-modal {
     .ant-modal-content {
-        background: #F4F5F0 !important;
-        border-radius: 32px !important;
+        background: $background-color !important;
+        border-radius: $border-radius-xl !important;
         padding: 0 !important;
         overflow: hidden;
     }
@@ -64,6 +64,7 @@
     .ant-modal-header {
         padding: 32px 32px 16px !important;
         margin: 0 !important;
+        background: transparent !important;
     }
 
     .ant-modal-body {
@@ -73,7 +74,7 @@
     .selection-bar {
         padding: 16px 24px;
         margin-bottom: 24px;
-        border-radius: 20px;
+        border-radius: $border-radius-lg;
         background: rgba(255, 255, 255, 0.4);
         display: flex;
         align-items: center;
@@ -81,19 +82,19 @@
 
         .modern-checkbox {
             .ant-checkbox-inner {
-                border-radius: 6px;
+                border-radius: 4px;
             }
         }
 
         .modern-input-number {
-            border-radius: 10px;
+            border-radius: 8px;
             width: 80px;
         }
     }
 
     .table-wrapper {
         background: #ffffff;
-        border-radius: 24px;
+        border-radius: $border-radius-lg;
         padding: 12px;
         box-shadow: $shadow-soft;
         border: 1px solid rgba(0, 0, 0, 0.03);

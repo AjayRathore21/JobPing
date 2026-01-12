@@ -23,7 +23,7 @@
         background: rgba(255, 255, 255, 0.6);
         backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 32px;
+        border-radius: $border-radius-xl;
         padding: 32px;
         box-shadow: $shadow-soft;
 
@@ -70,7 +70,7 @@
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 32px !important;
+        border-radius: $border-radius-xl !important;
         padding: 32px !important;
         box-shadow: $shadow-medium;
     }
@@ -89,7 +89,7 @@
         .preview-info-chip {
             background: rgba(0, 0, 0, 0.04);
             padding: 12px 20px;
-            border-radius: 16px;
+            border-radius: $border-radius-lg;
             display: flex;
             gap: 12px;
             margin-bottom: 24px;
@@ -103,7 +103,7 @@
         .email-body-preview {
             background: #ffffff;
             padding: 32px;
-            border-radius: 20px;
+            border-radius: $border-radius-lg;
             border: 1px solid rgba(0, 0, 0, 0.05);
             min-height: 200px;
             max-height: 500px;
