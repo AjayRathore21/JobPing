@@ -112,7 +112,7 @@ const MailWithCSVTab: React.FC<MailWithCSVTabProps> = ({
             </div>
 
             <div className="card-body">
-              <Dragger {...uploadProps} className="modern-dragger">
+              <Dragger {...uploadProps}>
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined />
                 </p>

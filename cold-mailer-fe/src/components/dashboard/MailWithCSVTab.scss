@@ -31,33 +31,6 @@
         }
     }
 
-    .modern-dragger {
-        background: #fafafa !important;
-        border: 2px dashed rgba(0, 0, 0, 0.1) !important;
-        border-radius: $border-radius-lg !important;
-        padding: 40px 0 !important;
-        transition: $transition-smooth;
-
-        &:hover {
-            border-color: $secondary-color !important;
-            background: rgba($secondary-color, 0.05) !important;
-        }
-
-        .ant-upload-drag-icon {
-            margin-bottom: 12px !important;
-            color: $text-secondary !important;
-        }
-
-        .ant-upload-text {
-            font-weight: 600 !important;
-            color: $text-primary !important;
-        }
-
-        .ant-upload-hint {
-            font-size: 13px !important;
-        }
-    }
-
     .input-label {
         display: block;
         margin-bottom: 10px;
