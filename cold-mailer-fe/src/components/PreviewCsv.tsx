@@ -5,24 +5,16 @@ import type { ColumnsType } from "antd/es/table";
 import axios from "../configs/axiosConfig";
 import Papa from "papaparse";
 import { useUserStore } from "../store/userStore";
+import type { CsvRecord } from "../store/userStore";
 import PreviewCsvData from "./PreviewCsvData";
 import "./PreviewCsv.scss";
 
-interface CsvRecord {
-  _id: string;
-  name: string;
-  url: string;
-  totalRecords: number;
-  sent: number;
-  uploadedAt: string;
-  sentEmailRowIds?: string[];
-  failedEmailRowIds?: string[];
-}
-
 const PreviewCsv = () => {
-  const [csvs, setCsvs] = useState<CsvRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const csvs = useUserStore((state) => state.csvs);
+  const loading = useUserStore((state) => state.csvsLoading);
+  const fetchCsvs = useUserStore((state) => state.fetchCsvs);
+
+  const [error] = useState<string | null>(null);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,7 +29,7 @@ const PreviewCsv = () => {
 
   useEffect(() => {
     fetchCsvs();
-  }, []);
+  }, [fetchCsvs]);
 
   // Sync selectedCsv with updated metadata from csvs list
   useEffect(() => {
@@ -49,24 +41,10 @@ const PreviewCsv = () => {
     }
   }, [csvs, selectedCsv]);
 
-  const fetchCsvs = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get("/upload/csv");
-      setCsvs(response.data.data || []);
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching CSVs:", err);
-      setError("Failed to load uploaded files");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDeleteCsv = async (id: string) => {
     try {
       await axios.delete(`/upload/csv/${id}`);
-      setCsvs(csvs.filter((c) => c._id !== id));
+      fetchCsvs();
       message.success("CSV deleted successfully");
     } catch (err) {
       console.error("Error deleting CSV:", err);
