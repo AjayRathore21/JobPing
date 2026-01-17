@@ -39,6 +39,7 @@ const MailWithCSVTab: React.FC<MailWithCSVTabProps> = ({
   const emailHtml = useUserStore((state) => state.emailHtml);
   const setEmailSubject = useUserStore((state) => state.setEmailSubject);
   const setEmailHtml = useUserStore((state) => state.setEmailHtml);
+  const fetchCsvs = useUserStore((state) => state.fetchCsvs);
 
   const handleUpload = () => {
     if (fileList.length === 0) {
@@ -64,6 +65,7 @@ const MailWithCSVTab: React.FC<MailWithCSVTabProps> = ({
       .then(() => {
         message.success("File uploaded successfully");
         setFileList([]);
+        fetchCsvs();
       })
       .catch((err) => {
         console.error("Upload error:", err);
