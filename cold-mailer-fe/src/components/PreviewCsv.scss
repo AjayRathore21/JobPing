@@ -28,6 +28,10 @@
         border-bottom: 1px solid rgba(0, 0, 0, 0.03) !important;
         color: $text-primary;
         font-weight: 500;
+
+        @media (max-width: 576px) {
+            padding: 10px 12px !important;
+        }
     }
 
     .ant-table-tbody>tr {
@@ -95,32 +99,61 @@
 
         @media (max-width: 768px) {
             flex-direction: column;
-            align-items: flex-start;
+            align-items: stretch;
             gap: 16px;
             padding: 16px;
+        }
+
+        .selection-bar-space {
+            width: 100%;
         }
 
         .modern-checkbox {
             .ant-checkbox-inner {
                 border-radius: 4px;
             }
+
+            @media (max-width: 576px) {
+                margin-bottom: 4px;
+            }
         }
 
         .range-controls {
             @media (max-width: 576px) {
                 width: 100%;
+                background: rgba(0, 0, 0, 0.02);
+                padding: 12px;
+                border-radius: 8px;
 
                 .ant-space {
                     width: 100%;
                     gap: 8px !important;
+                    justify-content: flex-start;
                     flex-wrap: wrap;
                 }
+            }
+
+            .filter-range-label {
+                white-space: nowrap;
+                min-width: fit-content;
             }
         }
 
         .modern-input-number {
             border-radius: 8px;
-            width: 80px;
+            width: 70px;
+
+            @media (max-width: 576px) {
+                flex: 1;
+                min-width: 60px;
+            }
+        }
+
+        .range-apply-btn {
+            @media (max-width: 576px) {
+                width: 100%;
+                margin-top: 4px;
+            }
         }
     }
 
@@ -130,13 +163,39 @@
         padding: 12px;
         box-shadow: $shadow-soft;
         border: 1px solid rgba(0, 0, 0, 0.03);
+
+        @media (max-width: 576px) {
+            padding: 8px;
+            margin: 0 -8px;
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+        }
     }
 
     .preview-modal-title {
         margin: 0 !important;
 
         @media (max-width: 576px) {
-            font-size: 18px !important;
+            font-size: 16px !important;
+            line-height: 1.4 !important;
+        }
+    }
+
+    .ant-modal-footer {
+        padding: 16px 24px 24px !important;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+
+        @media (max-width: 576px) {
+            flex-direction: column-reverse;
+            padding: 16px !important;
+
+            .ant-btn {
+                width: 100%;
+                margin: 0 !important;
+            }
         }
     }
 

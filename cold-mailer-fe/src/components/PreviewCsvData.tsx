@@ -191,18 +191,26 @@ const PreviewCsvData = ({
   const previewColumns: ColumnsType<Record<string, string>> = [
     ...previewHeaders
       .filter((header) => header.toLowerCase() !== "id")
-      .map((header) => ({
-        title: header,
-        dataIndex: header,
-        key: header,
-        ellipsis: true,
-        width: header.toLowerCase() === "email" ? 200 : 120,
-      })),
+      .map((header) => {
+        const h = header.toLowerCase();
+        let width = 120;
+        if (h.includes("email")) width = 220;
+        if (h.includes("name")) width = 150;
+        if (h.includes("company")) width = 180;
+
+        return {
+          title: header,
+          dataIndex: header,
+          key: header,
+          ellipsis: true,
+          width,
+        };
+      }),
     {
       title: "Actions",
       key: "actions",
       fixed: "right",
-      width: screens.xs ? 80 : 120,
+      width: screens.xs ? 70 : 110,
       render: (_, record: Record<string, string>) => {
         const key = record.key;
         const { isSent, isFailed } = getRowStatus(record);
@@ -320,7 +328,7 @@ const PreviewCsvData = ({
       ) : previewData.length > 0 ? (
         <div className="modal-inner-content">
           <div className="selection-bar glass-card">
-            <Space wrap size="large">
+            <Space wrap size="large" className="selection-bar-space">
               <Checkbox
                 checked={
                   selectedRowKeys.length === previewData.length &&
@@ -333,8 +341,10 @@ const PreviewCsvData = ({
               </Checkbox>
 
               <div className="range-controls">
-                <Space>
-                  <Text strong>Filter Range:</Text>
+                <Space wrap>
+                  <Text strong className="filter-range-label">
+                    Filter Range:
+                  </Text>
                   <InputNumber
                     min={1}
                     max={previewData.length}
@@ -354,6 +364,7 @@ const PreviewCsvData = ({
                     onClick={handleApplyRange}
                     shape="round"
                     type="default"
+                    className="range-apply-btn"
                   >
                     Apply
                   </Button>
