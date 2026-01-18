@@ -16,6 +16,7 @@ import {
   EyeOutlined,
 } from "@ant-design/icons";
 import type { UploadFile, RcFile } from "antd/es/upload/interface";
+import Papa from "papaparse";
 import PreviewCsv from "../PreviewCsv";
 import axios from "../../configs/axiosConfig";
 import { useUserStore } from "../../store/userStore";
@@ -24,6 +25,9 @@ import "./MailWithCSVTab.scss";
 const { Title, Text } = Typography;
 const { Dragger } = Upload;
 const { TextArea } = Input;
+
+// Required columns for CSV validation
+const REQUIRED_COLUMNS = ["email"];
 
 interface MailWithCSVTabProps {
   setIsPreviewOpen: (open: boolean) => void;
@@ -34,6 +38,10 @@ const MailWithCSVTab: React.FC<MailWithCSVTabProps> = ({
 }) => {
   const [uploading, setUploading] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [validationStatus, setValidationStatus] = useState<{
+    isValid: boolean;
+    message: string;
+  } | null>(null);
 
   const emailSubject = useUserStore((state) => state.emailSubject);
   const emailHtml = useUserStore((state) => state.emailHtml);
@@ -41,9 +49,63 @@ const MailWithCSVTab: React.FC<MailWithCSVTabProps> = ({
   const setEmailHtml = useUserStore((state) => state.setEmailHtml);
   const fetchCsvs = useUserStore((state) => state.fetchCsvs);
 
+  // Validate CSV file columns
+  const validateCsvFile = (
+    file: RcFile
+  ): Promise<{
+    isValid: boolean;
+    message: string;
+  }> => {
+    return new Promise((resolve) => {
+      Papa.parse(file, {
+        preview: 1, // Only parse header row
+        complete: (results) => {
+          if (results.data.length === 0) {
+            resolve({
+              isValid: false,
+              message: "CSV file appears to be empty",
+            });
+            return;
+          }
+
+          const headers = (results.data[0] as string[]).map((h) =>
+            h.toLowerCase().trim()
+          );
+
+          const missingRequired = REQUIRED_COLUMNS.filter(
+            (col) => !headers.includes(col.toLowerCase())
+          );
+
+          if (missingRequired.length > 0) {
+            resolve({
+              isValid: false,
+              message: `Missing required column: ${missingRequired.join(", ")}`,
+            });
+          } else {
+            resolve({
+              isValid: true,
+              message: "CSV is valid and ready to upload",
+            });
+          }
+        },
+        error: (error) => {
+          resolve({
+            isValid: false,
+            message: `Failed to parse CSV: ${error.message}`,
+          });
+        },
+      });
+    });
+  };
+
   const handleUpload = () => {
     if (fileList.length === 0) {
       message.warning("Please select a file first");
+      return;
+    }
+
+    if (!validationStatus?.isValid) {
+      message.error("Please upload a valid CSV file with required columns");
       return;
     }
 
@@ -65,6 +127,7 @@ const MailWithCSVTab: React.FC<MailWithCSVTabProps> = ({
       .then(() => {
         message.success("File uploaded successfully");
         setFileList([]);
+        setValidationStatus(null);
         fetchCsvs();
       })
       .catch((err) => {
@@ -82,9 +145,20 @@ const MailWithCSVTab: React.FC<MailWithCSVTabProps> = ({
       const newFileList = fileList.slice();
       newFileList.splice(index, 1);
       setFileList(newFileList);
+      setValidationStatus(null);
     },
-    beforeUpload: (file: RcFile) => {
+    beforeUpload: async (file: RcFile) => {
+      // Validate CSV columns before accepting
+      const validation = await validateCsvFile(file);
+      setValidationStatus(validation);
+
+      if (!validation.isValid) {
+        message.error(validation.message);
+        return Upload.LIST_IGNORE;
+      }
+
       setFileList([file as UploadFile]);
+
       return false;
     },
     fileList,
@@ -122,9 +196,30 @@ const MailWithCSVTab: React.FC<MailWithCSVTabProps> = ({
                   Click or drag file to this area to upload
                 </p>
                 <p className="ant-upload-hint">
-                  Support for a single .csv file only.
+                  CSV must have an <strong>email</strong> column. Recommended:{" "}
+                  <strong>id</strong>, <strong>name</strong>
                 </p>
               </Dragger>
+
+              {validationStatus && (
+                <div
+                  className={`validation-status ${
+                    validationStatus.isValid ? "valid" : "invalid"
+                  }`}
+                  style={{
+                    marginTop: 12,
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    backgroundColor: validationStatus.isValid
+                      ? "rgba(16, 185, 129, 0.1)"
+                      : "rgba(239, 68, 68, 0.1)",
+                    color: validationStatus.isValid ? "#10B981" : "#EF4444",
+                    fontSize: 13,
+                  }}
+                >
+                  {validationStatus.message}
+                </div>
+              )}
 
               <Button
                 type="primary"
@@ -133,7 +228,7 @@ const MailWithCSVTab: React.FC<MailWithCSVTabProps> = ({
                 shape="round"
                 onClick={handleUpload}
                 loading={uploading}
-                disabled={fileList.length === 0}
+                disabled={fileList.length === 0 || !validationStatus?.isValid}
                 className="action-btn"
                 style={{ marginTop: 24 }}
               >
