@@ -21,6 +21,7 @@ import {
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { useUserStore } from "../store/userStore";
+import AuthRestrictionModal from "./AuthRestrictionModal";
 import "./PreviewCsv.scss";
 
 const { Title, Text } = Typography;
@@ -71,6 +72,8 @@ const PreviewCsvData = ({
     "selected" | "range" | "bulk"
   >("bulk");
   const [resendingKey, setResendingKey] = useState<string | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const user = useUserStore((state) => state.user);
 
   // Reset state when modal closes
   useEffect(() => {
@@ -139,6 +142,10 @@ const PreviewCsvData = ({
   };
 
   const handleSingleSend = async (key: string) => {
+    if (!user?.googleId) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     setResendingKey(key);
     await onSendEmail({ mode: "selected", rowIds: [key] });
     setResendingKey(null);
@@ -146,6 +153,10 @@ const PreviewCsvData = ({
 
   // Handle send email (Bulk/Range/Multi)
   const handleSendEmail = async () => {
+    if (!user?.googleId) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     if (selectedRowKeys.length > 0) {
       if (
         selectionMode === "range" &&
@@ -248,10 +259,7 @@ const PreviewCsvData = ({
                       opened.openedAt
                     ).toLocaleString()}`}
                   >
-                    <EyeOutlined
-                      className="status-eye-icon"
-                      style={{ color: "#5D5DFF" }}
-                    />
+                    <EyeOutlined className="status-eye-icon" />
                   </Tooltip>
                 );
               }
@@ -268,7 +276,7 @@ const PreviewCsvData = ({
       key={selectedCsv?._id}
       title={
         <div className="preview-modal-header">
-          <Title level={4} style={{ margin: 0 }}>
+          <Title level={4} className="preview-modal-title">
             {selectedCsv?.name}
           </Title>
           <Text type="secondary">
@@ -302,12 +310,9 @@ const PreviewCsvData = ({
       centered
     >
       {modalLoading ? (
-        <div
-          className="loading-container"
-          style={{ textAlign: "center", padding: "60px 0" }}
-        >
+        <div className="loading-container">
           <Spin size="large" />
-          <div style={{ marginTop: 16 }}>
+          <div className="parsing-text">
             <Text type="secondary">Parsing your data...</Text>
           </div>
         </div>
@@ -382,6 +387,11 @@ const PreviewCsvData = ({
           showIcon
         />
       )}
+      <AuthRestrictionModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        type="GOOGLE_AUTH_REQUIRED"
+      />
     </Modal>
   );
 };

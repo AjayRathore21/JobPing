@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Form, Input, Button, Typography, message, Divider, Space } from "antd";
+import { Form, Input, Button, Typography, message, Divider } from "antd";
 import { GoogleOutlined, LoginOutlined } from "@ant-design/icons";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 import axios from "../configs/axiosConfig";
@@ -8,10 +8,15 @@ import "./authForm.scss";
 import { selectSetUser, useUserStore } from "../store/userStore";
 import { setTokenToLS } from "../HelperMethods";
 import AuthCheck from "../hooks/Authcheck";
+import AuthRestrictionModal from "./AuthRestrictionModal";
 
 const { Title, Text } = Typography;
 
+const TEST_EMAILS = ["ajaykumar420.ak79@gmail.com"];
+
 const LoginPage = () => {
+  const [form] = Form.useForm();
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
   const isAuthenticated = AuthCheck();
   const navigate = useNavigate();
   const setUser = useUserStore(selectSetUser);
@@ -46,9 +51,18 @@ const LoginPage = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
+  const triggerGoogleLogin = () => {
     const backendUrl = import.meta.env.VITE_BASE_URL;
     window.location.href = `${backendUrl}/auth/google`;
+  };
+
+  const handleGoogleLogin = () => {
+    const email = form.getFieldValue("email");
+    if (!email || !TEST_EMAILS.includes(email.toLowerCase())) {
+      setIsModalOpen(true);
+    } else {
+      triggerGoogleLogin();
+    }
   };
 
   return (
@@ -67,6 +81,7 @@ const LoginPage = () => {
         </div>
 
         <Form
+          form={form}
           layout="vertical"
           onFinish={onFinish}
           className="modern-auth-form"
@@ -96,7 +111,7 @@ const LoginPage = () => {
             />
           </Form.Item>
 
-          <Form.Item style={{ marginTop: 24 }}>
+          <Form.Item className="auth-submit-item">
             <Button
               type="primary"
               htmlType="submit"
@@ -133,6 +148,13 @@ const LoginPage = () => {
           </Link>
         </div>
       </div>
+
+      <AuthRestrictionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        type="TEST_MODE"
+        onProceed={triggerGoogleLogin}
+      />
     </div>
   );
 };

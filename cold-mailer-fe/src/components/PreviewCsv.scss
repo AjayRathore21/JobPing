@@ -99,6 +99,23 @@
         box-shadow: $shadow-soft;
         border: 1px solid rgba(0, 0, 0, 0.03);
     }
+
+    .preview-modal-title {
+        margin: 0 !important;
+    }
+
+    .loading-container {
+        text-align: center;
+        padding: 60px 0;
+
+        .parsing-text {
+            margin-top: 16px;
+        }
+    }
+}
+
+.status-eye-icon {
+    color: #5d5dff;
 }
 
 .row-sent {

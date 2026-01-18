@@ -17,6 +17,7 @@ import {
   type CustomMail,
   type UserInfo,
 } from "../store/userStore";
+import AuthRestrictionModal from "./AuthRestrictionModal";
 import "./ManualEmailInput.scss";
 
 const { Title, Text } = Typography;
@@ -24,6 +25,7 @@ const { Title, Text } = Typography;
 const ManualEmailInput: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const user = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
   const emailSubject = useUserStore((state) => state.emailSubject as string);
@@ -34,8 +36,8 @@ const ManualEmailInput: React.FC = () => {
     companyName?: string;
     location?: string;
   }) => {
-    if (!user?.gmailRefreshToken) {
-      message.error("Please sign in with Google to send emails.");
+    if (!user?.googleId) {
+      setIsAuthModalOpen(true);
       return;
     }
 
@@ -84,7 +86,7 @@ const ManualEmailInput: React.FC = () => {
             <UserAddOutlined />
           </div>
           <div>
-            <Title level={4} style={{ margin: 0 }}>
+            <Title level={4} className="card-title">
               Direct Outreach
             </Title>
             <Text type="secondary">
@@ -156,7 +158,7 @@ const ManualEmailInput: React.FC = () => {
             </Col>
           </Row>
 
-          <Form.Item style={{ marginBottom: 0, marginTop: 12 }}>
+          <Form.Item className="submit-item">
             <Button
               type="primary"
               htmlType="submit"
@@ -172,6 +174,12 @@ const ManualEmailInput: React.FC = () => {
           </Form.Item>
         </Form>
       </div>
+
+      <AuthRestrictionModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        type="GOOGLE_AUTH_REQUIRED"
+      />
     </div>
   );
 };

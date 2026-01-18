@@ -1,0 +1,104 @@
+.auth-restriction-modal {
+    .ant-modal-content {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        padding: 32px 24px;
+    }
+
+    .ant-modal-close {
+        top: 20px;
+        right: 20px;
+        color: #666;
+
+        &:hover {
+            color: #000;
+        }
+    }
+
+    .modal-content-wrapper {
+        text-align: center;
+
+        .icon-badge-large {
+            width: 64px;
+            height: 64px;
+            background: rgba(93, 93, 255, 0.1);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 28px;
+
+            .modal-icon-info {
+                color: #1890ff;
+            }
+
+            .modal-icon-lock {
+                color: #ff4d4f;
+            }
+        }
+
+        .modal-title {
+            margin-bottom: 24px !important;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .modal-message-container {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            text-align: left;
+
+            .modal-text {
+                font-size: 15px;
+                line-height: 1.6;
+                color: #444;
+                display: block;
+
+                &.mt-sm {
+                    margin-top: 12px;
+                }
+            }
+
+            .modal-link {
+                color: #5d5dff;
+                font-weight: 600;
+                text-decoration: none;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+
+        .modal-action-btn {
+            height: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            background: linear-gradient(135deg, #5d5dff 0%, #3b3bbb 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(93, 93, 255, 0.3);
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(93, 93, 255, 0.4);
+            }
+        }
+
+        .modal-cancel-btn {
+            height: 50px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .modal-footer-space {
+            margin-top: 32px;
+            width: 100%;
+        }
+    }
+}
