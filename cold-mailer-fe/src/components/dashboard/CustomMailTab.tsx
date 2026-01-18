@@ -15,24 +15,27 @@ const CUSTOM_MAIL_COLUMNS: ColumnsType<CustomMail> = [
     dataIndex: "emailId",
     key: "emailId",
     ellipsis: true,
+    width: 180,
   },
   {
     title: "Company",
     dataIndex: "company",
     key: "company",
+    width: 120,
     render: (text) => text || "-",
   },
   {
     title: "Location",
     dataIndex: "location",
     key: "location",
+    width: 120,
     render: (text) => text || "-",
   },
   {
     title: "Status",
     dataIndex: "openedStatus",
     key: "openedStatus",
-    width: 120,
+    width: 100,
     render: (opened: boolean) => (
       <Tag
         color={opened ? "success" : "processing"}
@@ -46,7 +49,7 @@ const CUSTOM_MAIL_COLUMNS: ColumnsType<CustomMail> = [
     title: "Sent At",
     dataIndex: "createdAt",
     key: "createdAt",
-    width: 180,
+    width: 160,
     render: (date: string) => (
       <Text type="secondary">{new Date(date).toLocaleString()}</Text>
     ),
@@ -148,6 +151,7 @@ const CustomMailTab: React.FC<CustomMailTabProps> = ({ setIsPreviewOpen }) => {
           rowKey="_id"
           pagination={{ pageSize: 8 }}
           className="custom-table"
+          scroll={{ x: 680 }}
           locale={{ emptyText: "No manual emails sent yet" }}
         />
       </div>
