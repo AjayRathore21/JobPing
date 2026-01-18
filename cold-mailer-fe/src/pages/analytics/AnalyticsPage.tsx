@@ -84,7 +84,7 @@ const AnalyticsPage: React.FC = () => {
     <div className="analytics-page">
       <div className="analytics-header">
         <Title level={2} className="analytics-title">
-          Analytics
+          Dummy Analytics (I will release it soon)
         </Title>
         <Text type="secondary">
           Track your email performance and campaign success

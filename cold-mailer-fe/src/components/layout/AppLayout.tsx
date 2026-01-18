@@ -39,19 +39,19 @@ const AppLayout: React.FC = () => {
   };
 
   const userMenuItems: MenuProps["items"] = [
-    {
-      key: "profile",
-      label: "My Profile",
-      icon: <UserOutlined />,
-    },
-    {
-      key: "settings",
-      label: "Account Settings",
-      icon: <SettingOutlined />,
-    },
-    {
-      type: "divider",
-    },
+    // {
+    //   key: "profile",
+    //   label: "My Profile",
+    //   icon: <UserOutlined />,
+    // },
+    // {
+    //   key: "settings",
+    //   label: "Account Settings",
+    //   icon: <SettingOutlined />,
+    // },
+    // {
+    //   type: "divider",
+    // },
     {
       key: "logout",
       label: "Sign Out",
@@ -63,7 +63,7 @@ const AppLayout: React.FC = () => {
 
   const navItems = [
     { label: "Dashboard", path: "/dashboard" },
-    { label: "Analytics", path: "/analytics" }
+    { label: "Analytics", path: "/analytics" },
   ];
 
   return (
@@ -104,7 +104,6 @@ const AppLayout: React.FC = () => {
               />
             )}
             <div className="utility-icons">
-              <Button type="text" icon={<SettingOutlined />} />
               <Dropdown
                 menu={{ items: userMenuItems }}
                 placement="bottomRight"
