@@ -24,27 +24,40 @@ const AuthRestrictionModal: React.FC<AuthRestrictionModalProps> = ({
 }) => {
   const content = {
     TEST_MODE: {
-      title: "Google Login Required",
+      title: "Google App in Testing Mode",
       icon: <InfoCircleOutlined className="modal-icon-info" />,
       message: (
         <>
           <Text className="modal-text">
-            ✉️ To send emails on your behalf, you must log in using Google and
-            grant the “Send email on my behalf” permission.
+            This is a personal project, and the Google app is currently running
+            in <strong>testing mode</strong> due to Google OAuth publishing
+            requirements.
           </Text>
           <Text className="modal-text mt-sm">
-            This feature requires Google OAuth verification, which includes a
-            verified domain and legal documents. Since this is a personal
-            project, the app is currently running in testing mode.
+            Publishing a Google app that uses sensitive scopes (such as sending
+            emails on behalf of a user) requires a verified domain, Privacy
+            Policy, Terms & Conditions, and completion of Google's OAuth
+            verification process. For a self-funded personal project, this
+            involves additional cost and overhead.
           </Text>
           <Text className="modal-text mt-sm">
-            Normal login is provided for exploration purposes only.
+            💬 If you'd like to use this app, please{" "}
+            <a
+              href="https://www.linkedin.com/in/ajay-rathore-5a99aa195/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              DM me on LinkedIn
+            </a>
+            —I'll add you as a test user, and you'll get full access free of
+            cost.
           </Text>
         </>
       ),
-      buttonText: "Proceed anyway",
+      buttonText: "Continue to App",
       buttonIcon: <GoogleOutlined />,
     },
+
     GOOGLE_AUTH_REQUIRED: {
       title: "Google Authentication Required",
       icon: <LockOutlined className="modal-icon-lock" />,
