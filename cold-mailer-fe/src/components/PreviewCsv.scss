@@ -78,6 +78,10 @@
 
     .ant-modal-body {
         padding: 0 24px 24px !important;
+
+        @media (max-width: 576px) {
+            padding: 0 16px 16px !important;
+        }
     }
 
     .selection-bar {
@@ -89,9 +93,28 @@
         align-items: center;
         justify-content: space-between;
 
+        @media (max-width: 768px) {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px;
+        }
+
         .modern-checkbox {
             .ant-checkbox-inner {
                 border-radius: 4px;
+            }
+        }
+
+        .range-controls {
+            @media (max-width: 576px) {
+                width: 100%;
+
+                .ant-space {
+                    width: 100%;
+                    gap: 8px !important;
+                    flex-wrap: wrap;
+                }
             }
         }
 
@@ -111,6 +134,10 @@
 
     .preview-modal-title {
         margin: 0 !important;
+
+        @media (max-width: 576px) {
+            font-size: 18px !important;
+        }
     }
 
     .loading-container {

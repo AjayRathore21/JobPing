@@ -196,12 +196,13 @@ const PreviewCsvData = ({
         dataIndex: header,
         key: header,
         ellipsis: true,
+        width: header.toLowerCase() === "email" ? 200 : 120,
       })),
     {
       title: "Actions",
       key: "actions",
       fixed: "right",
-      width: 150,
+      width: screens.xs ? 80 : 120,
       render: (_, record: Record<string, string>) => {
         const key = record.key;
         const { isSent, isFailed } = getRowStatus(record);

@@ -24,26 +24,21 @@ const AuthRestrictionModal: React.FC<AuthRestrictionModalProps> = ({
 }) => {
   const content = {
     TEST_MODE: {
-      title: "Testing Mode",
+      title: "Google Login Required",
       icon: <InfoCircleOutlined className="modal-icon-info" />,
       message: (
         <>
           <Text className="modal-text">
-            ⚠️ This is a personal project, and the Google app is currently in
-            testing mode.
+            ✉️ To send emails on your behalf, you must log in using Google and
+            grant the “Send email on my behalf” permission.
           </Text>
           <Text className="modal-text mt-sm">
-            If you want to use this app, please DM me on{" "}
-            <a
-              href="https://www.linkedin.com/in/ajay-rathore-01/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="modal-link"
-            >
-              LinkedIn
-            </a>
-            . I will add your email as a test user, and you’ll be able to access
-            the app free of cost.
+            This feature requires Google OAuth verification, which includes a
+            verified domain and legal documents. Since this is a personal
+            project, the app is currently running in testing mode.
+          </Text>
+          <Text className="modal-text mt-sm">
+            Normal login is provided for exploration purposes only.
           </Text>
         </>
       ),
