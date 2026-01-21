@@ -27,7 +27,6 @@ function App() {
         } catch (error) {
           console.error("Session validation failed:", error);
           // Only clear if it's an auth error (401/403)
-          // For now, let's be safe and clear on any error that prevents getting the user
           localStorage.removeItem("token");
           clearUser();
         }
