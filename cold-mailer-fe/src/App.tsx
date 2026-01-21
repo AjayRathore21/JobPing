@@ -38,7 +38,6 @@ function App() {
 
   return (
     <Routes>
-      {/* Protected routes - add new protected routes here */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
