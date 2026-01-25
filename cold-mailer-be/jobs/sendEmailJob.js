@@ -5,6 +5,25 @@ import { createLogger } from "../utils/logger.js";
 const logger = createLogger("SendEmailJob");
 
 /**
+ * Replace template placeholders with actual values from the row data
+ */
+function replacePlaceholders(text, row) {
+  if (!text) return text;
+
+  return text
+    .replace(/\{\{name\}\}/gi, row.name || "there")
+    .replace(
+      /\{\{company_name\}\}/gi,
+      row.company_name || row.company || row.Company || "your company",
+    )
+    .replace(
+      /\{\{company\}\}/gi,
+      row.company_name || row.company || row.Company || "your company",
+    )
+    .replace(/\{\{email\}\}/gi, row.email || "");
+}
+
+/**
  * Sends a single email using the provided transporter.
  */
 async function sendSingleEmail(
@@ -14,19 +33,23 @@ async function sendSingleEmail(
   subject,
   html,
   userId,
-  csvId
+  csvId,
 ) {
   const baseUrl = process.env.BACKEND_URL;
 
   const trackingPixel = `<img src="${baseUrl}/track-email?userId=${userId}&csvId=${csvId}&rowId=${row.id}&recruiterEmail=${row.email}" width="1" height="1" style="display:none;" />`;
 
+  // Replace placeholders in subject and body
+  const personalizedSubject = replacePlaceholders(subject, row);
+  const personalizedHtml = replacePlaceholders(html, row);
+
   const mailOptions = {
     from,
     to: row.email,
-    subject: subject || "Test Email from Cold Mailer",
+    subject: personalizedSubject || "Test Email from Cold Mailer",
     html:
-      (html || `Hello ${row.name || "there"}, this is a test email!`) +
-      trackingPixel,
+      (personalizedHtml ||
+        `Hello ${row.name || "there"}, this is a test email!`) + trackingPixel,
   };
 
   try {
@@ -85,10 +108,10 @@ export async function sendEmailJob({
           subject,
           html,
           userId,
-          csvId
+          csvId,
         );
         return { ...result, rowId: row.id };
-      })
+      }),
     );
 
     // Analyze results
