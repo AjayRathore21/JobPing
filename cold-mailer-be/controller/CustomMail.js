@@ -31,7 +31,7 @@ export const sendCustomMail = async (req, res) => {
       await customMail.save();
 
       // Tracking pixel URL (Update base URL in production)
-      const baseUrl = process.env.BASE_URL || `http://localhost:3000`;
+      const baseUrl = process.env.BACKEND_URL || `http://localhost:3000`;
       const trackingPixel = `<img src="${baseUrl}/track/custom?mailId=${customMail._id}" width="1" height="1" style="display:none;" />`;
 
       const mailOptions = {
