@@ -1,26 +1,12 @@
 import Csv from "../model/Csv.js";
 import User from "../model/User.js";
-import { loadCsvFromCloudinary } from "../utils/helpers.js";
+import { loadCsvFromCloudinary, extractVariables } from "../utils/helpers.js";
 import { sendEmailJob } from "../jobs/sendEmailJob.js";
 import { createGmailTransporter } from "../configs/mailService.js";
 import { createLogger } from "../utils/logger.js";
 
 // Create a context-specific logger for this controller
 const logger = createLogger("SendEmailController");
-
-/**
- * Extracts all dynamic variables in the format {{variable}} from text
- */
-function extractVariables(text) {
-  if (!text) return [];
-  const regex = /\{\{([^}]+)\}\}/gi;
-  const variables = new Set();
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    variables.add(match[1].trim());
-  }
-  return Array.from(variables);
-}
 
 const sendEmail = async (req, res) => {
   const startTime = Date.now();
@@ -75,8 +61,12 @@ const sendEmail = async (req, res) => {
     // Validate dynamic variables
     const variables = extractVariables(`${subject || ""} ${html || ""}`);
     if (variables.length > 0 && csvData.length > 0) {
-      const headers = Object.keys(csvData[0]);
-      const missingVariables = variables.filter((v) => !headers.includes(v));
+      const headers = Object.keys(csvData[0]).map((h) =>
+        h.trim().toLowerCase(),
+      );
+      const missingVariables = variables.filter(
+        (v) => !headers.includes(v.trim().toLowerCase()),
+      );
 
       if (missingVariables.length > 0) {
         logger.warn("Email sending failed - missing dynamic variables", {

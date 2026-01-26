@@ -38,12 +38,12 @@ async function loadCsvFromCloudinary(url) {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
       throw new Error(
-        `Cloudinary download failed (${error.response.status}): ${error.response.statusText}`
+        `Cloudinary download failed (${error.response.status}): ${error.response.statusText}`,
       );
     } else if (error.request) {
       // The request was made but no response was received
       throw new Error(
-        "Cloudinary download failed: No response received from server"
+        "Cloudinary download failed: No response received from server",
       );
     } else {
       // Something happened in setting up the request that triggered an Error
@@ -76,4 +76,19 @@ function addUuidToCsv(filePath) {
   return tempFilePath;
 }
 
-export { loadCsvFromCloudinary, addUuidToCsv };
+/**
+ * Extracts all unique dynamic variables in the format {{variable}} from text.
+ * Trims variables and handles optional spaces.
+ */
+function extractVariables(text) {
+  if (!text) return [];
+  const regex = /\{\{\s*([^}]+?)\s*\}\}/gi;
+  const variables = new Set();
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    variables.add(match[1].trim());
+  }
+  return Array.from(variables);
+}
+
+export { loadCsvFromCloudinary, addUuidToCsv, extractVariables };

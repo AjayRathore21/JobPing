@@ -133,13 +133,24 @@ const PreviewCsv = () => {
       await axios.post("/send-email", payload);
       message.success("Email process started successfully!");
       fetchCsvs();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error sending email:", err);
-      if (err.response?.data?.error === "MISSING_VARIABLES") {
-        setMissingVariables(err.response.data.missingVariables || []);
+      const errorResponse = (
+        err as {
+          response?: {
+            data?: {
+              error?: string;
+              missingVariables?: string[];
+              message?: string;
+            };
+          };
+        }
+      ).response?.data;
+      if (errorResponse?.error === "MISSING_VARIABLES") {
+        setMissingVariables(errorResponse.missingVariables || []);
         setIsMissingModalOpen(true);
       } else {
-        message.error(err.response?.data?.message || "Failed to send email");
+        message.error(errorResponse?.message || "Failed to send email");
       }
     } finally {
       setSendingEmail(false);
