@@ -8,6 +8,20 @@ import { createLogger } from "../utils/logger.js";
 // Create a context-specific logger for this controller
 const logger = createLogger("SendEmailController");
 
+/**
+ * Extracts all dynamic variables in the format {{variable}} from text
+ */
+function extractVariables(text) {
+  if (!text) return [];
+  const regex = /\{\{([^}]+)\}\}/gi;
+  const variables = new Set();
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    variables.add(match[1].trim());
+  }
+  return Array.from(variables);
+}
+
 const sendEmail = async (req, res) => {
   const startTime = Date.now();
   const correlationId = req.correlationId;
@@ -57,6 +71,29 @@ const sendEmail = async (req, res) => {
     const csvData = await loadCsvFromCloudinary(csv.url);
 
     const { mode, rowIds, range, subject, html } = req.body || {};
+
+    // Validate dynamic variables
+    const variables = extractVariables(`${subject || ""} ${html || ""}`);
+    if (variables.length > 0 && csvData.length > 0) {
+      const headers = Object.keys(csvData[0]);
+      const missingVariables = variables.filter((v) => !headers.includes(v));
+
+      if (missingVariables.length > 0) {
+        logger.warn("Email sending failed - missing dynamic variables", {
+          missingVariables,
+          csvId,
+          userId: user?._id,
+          correlationId,
+        });
+        return res.status(400).json({
+          error: "MISSING_VARIABLES",
+          missingVariables,
+          message:
+            "Some dynamic variables in your template do not match the CSV headers.",
+        });
+      }
+    }
+
     let rowsToProcess = csvData;
 
     logger.info("Processing email request", {
@@ -206,7 +243,7 @@ export const trackEmail = async (req, res) => {
 
     // Check if already tracked to avoid duplicate notifications
     const alreadyTracked = user.openedEmails.some(
-      (entry) => entry.csvId.toString() === csvId && entry.rowId === rowId
+      (entry) => entry.csvId.toString() === csvId && entry.rowId === rowId,
     );
 
     if (!alreadyTracked) {
@@ -238,7 +275,7 @@ export const trackEmail = async (req, res) => {
     // Return 1x1 transparent pixel
     const pixel = Buffer.from(
       "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
-      "base64"
+      "base64",
     );
     res.writeHead(200, {
       "Content-Type": "image/gif",

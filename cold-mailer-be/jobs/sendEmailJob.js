@@ -10,17 +10,11 @@ const logger = createLogger("SendEmailJob");
 function replacePlaceholders(text, row) {
   if (!text) return text;
 
-  return text
-    .replace(/\{\{name\}\}/gi, row.name || "there")
-    .replace(
-      /\{\{company_name\}\}/gi,
-      row.company_name || row.company || row.Company || "your company",
-    )
-    .replace(
-      /\{\{company\}\}/gi,
-      row.company_name || row.company || row.Company || "your company",
-    )
-    .replace(/\{\{email\}\}/gi, row.email || "");
+  // Replace each {{key}} with row[key] or keep as is if not found
+  return text.replace(/\{\{([^}]+)\}\}/gi, (match, p1) => {
+    const key = p1.trim();
+    return row[key] !== undefined ? row[key] : match;
+  });
 }
 
 /**
