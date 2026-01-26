@@ -5,6 +5,7 @@ import sendEmail from "./SendEmail.js";
 import { trackEmail } from "../controller/SendEmail.js";
 import customMailRoutes from "./CustomMail.js";
 import trackingRoutes from "./Tracking.js";
+import emailTemplateRoutes from "./EmailTemplate.js";
 import passport from "passport";
 const router = express.Router();
 
@@ -16,5 +17,6 @@ router.use("/track", trackingRoutes);
 router.use("/upload", checkAuth, uploadRoutes);
 router.use("/send-email", checkAuth, sendEmail);
 router.use("/custom-mail", checkAuth, customMailRoutes);
+router.use("/templates", checkAuth, emailTemplateRoutes);
 
 export default router;

@@ -5,6 +5,43 @@ import { createLogger } from "../utils/logger.js";
 const logger = createLogger("SendEmailJob");
 
 /**
+ * Safely get a value from a row object ignoring case
+ */
+/**
+ * Safely get a value from a row object ignoring case and trim
+ */
+function getRowValue(row, key, keyMap) {
+  if (!row || !key) return undefined;
+
+  const normalizedKey = key.trim().toLowerCase();
+
+  // Use pre-calculated map if available
+  if (keyMap && keyMap[normalizedKey]) {
+    return row[keyMap[normalizedKey]];
+  }
+
+  // Fallback to searching (if map not provided)
+  const foundKey = Object.keys(row).find(
+    (k) => k.trim().toLowerCase() === normalizedKey,
+  );
+  return foundKey ? row[foundKey] : undefined;
+}
+
+/**
+ * Replace template placeholders with actual values from the row data
+ */
+function replacePlaceholders(text, row, keyMap) {
+  if (!text) return text;
+
+  // Replace each {{key}} or {{ key }} with row-matched value
+  return text.replace(/\{\{\s*([^}]+?)\s*\}\}/gi, (match, p1) => {
+    const key = p1.trim();
+    const value = getRowValue(row, key, keyMap);
+    return value !== undefined ? value : match;
+  });
+}
+
+/**
  * Sends a single email using the provided transporter.
  */
 async function sendSingleEmail(
@@ -14,30 +51,37 @@ async function sendSingleEmail(
   subject,
   html,
   userId,
-  csvId
+  csvId,
+  keyMap,
 ) {
-  const baseUrl = process.env.BACKEND_URL;
+  const recipientEmail = getRowValue(row, "email", keyMap) || row.email;
+  const recipientName = getRowValue(row, "name", keyMap) || row.name || "there";
+  const baseUrl = process.env.BACKEND_URL || "";
 
-  const trackingPixel = `<img src="${baseUrl}/track-email?userId=${userId}&csvId=${csvId}&rowId=${row.id}&recruiterEmail=${row.email}" width="1" height="1" style="display:none;" />`;
+  const trackingPixel = `<img src="${baseUrl}/track-email?userId=${userId}&csvId=${csvId}&rowId=${row.id}&recruiterEmail=${recipientEmail}" width="1" height="1" style="display:none;" />`;
+
+  // Replace placeholders in subject and body
+  const personalizedSubject = replacePlaceholders(subject, row, keyMap);
+  const personalizedHtml = replacePlaceholders(html, row, keyMap);
 
   const mailOptions = {
     from,
-    to: row.email,
-    subject: subject || "Test Email from Cold Mailer",
+    to: recipientEmail,
+    subject: personalizedSubject || "Test Email from Cold Mailer",
     html:
-      (html || `Hello ${row.name || "there"}, this is a test email!`) +
+      (personalizedHtml || `Hello ${recipientName}, this is a test email!`) +
       trackingPixel,
   };
 
   try {
-    logger.debug(`Sending email to: ${row.email}`);
+    logger.debug(`Sending email to: ${recipientEmail}`);
     await transporter.sendMail(mailOptions);
     return { success: true };
   } catch (error) {
-    logger.error(`Failed to send email to ${row.email}`, {
+    logger.error(`Failed to send email to ${recipientEmail}`, {
       error: error.message,
     });
-    return { success: false, email: row.email };
+    return { success: false, email: recipientEmail };
   }
 }
 
@@ -72,6 +116,14 @@ export async function sendEmailJob({
     batchSize,
   });
 
+  // Create header lookup map for optimization
+  const keyMap = {};
+  if (csvData.length > 0) {
+    Object.keys(csvData[0]).forEach((originalKey) => {
+      keyMap[originalKey.trim().toLowerCase()] = originalKey;
+    });
+  }
+
   for (let i = 0; i < csvData.length; i += batchSize) {
     const batch = csvData.slice(i, i + batchSize);
 
@@ -85,10 +137,11 @@ export async function sendEmailJob({
           subject,
           html,
           userId,
-          csvId
+          csvId,
+          keyMap,
         );
         return { ...result, rowId: row.id };
-      })
+      }),
     );
 
     // Analyze results

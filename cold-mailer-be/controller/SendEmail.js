@@ -1,6 +1,6 @@
 import Csv from "../model/Csv.js";
 import User from "../model/User.js";
-import { loadCsvFromCloudinary } from "../utils/helpers.js";
+import { loadCsvFromCloudinary, extractVariables } from "../utils/helpers.js";
 import { sendEmailJob } from "../jobs/sendEmailJob.js";
 import { createGmailTransporter } from "../configs/mailService.js";
 import { createLogger } from "../utils/logger.js";
@@ -57,6 +57,33 @@ const sendEmail = async (req, res) => {
     const csvData = await loadCsvFromCloudinary(csv.url);
 
     const { mode, rowIds, range, subject, html } = req.body || {};
+
+    // Validate dynamic variables
+    const variables = extractVariables(`${subject || ""} ${html || ""}`);
+    if (variables.length > 0 && csvData.length > 0) {
+      const headers = Object.keys(csvData[0]).map((h) =>
+        h.trim().toLowerCase(),
+      );
+      const missingVariables = variables.filter(
+        (v) => !headers.includes(v.trim().toLowerCase()),
+      );
+
+      if (missingVariables.length > 0) {
+        logger.warn("Email sending failed - missing dynamic variables", {
+          missingVariables,
+          csvId,
+          userId: user?._id,
+          correlationId,
+        });
+        return res.status(400).json({
+          error: "MISSING_VARIABLES",
+          missingVariables,
+          message:
+            "Some dynamic variables in your template do not match the CSV headers.",
+        });
+      }
+    }
+
     let rowsToProcess = csvData;
 
     logger.info("Processing email request", {
@@ -206,7 +233,7 @@ export const trackEmail = async (req, res) => {
 
     // Check if already tracked to avoid duplicate notifications
     const alreadyTracked = user.openedEmails.some(
-      (entry) => entry.csvId.toString() === csvId && entry.rowId === rowId
+      (entry) => entry.csvId.toString() === csvId && entry.rowId === rowId,
     );
 
     if (!alreadyTracked) {
@@ -238,7 +265,7 @@ export const trackEmail = async (req, res) => {
     // Return 1x1 transparent pixel
     const pixel = Buffer.from(
       "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
-      "base64"
+      "base64",
     );
     res.writeHead(200, {
       "Content-Type": "image/gif",
