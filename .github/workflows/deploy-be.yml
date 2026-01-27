@@ -31,6 +31,7 @@ jobs:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }},
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }},
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
           BACKEND_URL: ${{ vars.BACKEND_URL }}
           FRONTEND_URL: ${{ vars.FRONTEND_URL }}

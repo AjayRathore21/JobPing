@@ -19,6 +19,7 @@ const serverlessConfig = {
       CLOUDINARY_API_KEY: "${env:CLOUDINARY_API_KEY, ''}",
       CLOUDINARY_API_SECRET: "${env:CLOUDINARY_API_SECRET, ''}",
       CLOUDINARY_URL: "${env:CLOUDINARY_URL, ''}",
+      GEMINI_API_KEY: "${env:GEMINI_API_KEY, ''}",
     },
   },
   functions: {
