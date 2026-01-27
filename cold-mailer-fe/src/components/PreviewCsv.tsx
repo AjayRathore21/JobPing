@@ -7,6 +7,7 @@ import Papa from "papaparse";
 import { useUserStore } from "../store/userStore";
 import type { CsvRecord } from "../store/userStore";
 import PreviewCsvData from "./PreviewCsvData";
+import MissingVariablesModal from "./dashboard/MissingVariablesModal";
 import "./PreviewCsv.scss";
 
 const PreviewCsv = () => {
@@ -23,6 +24,8 @@ const PreviewCsv = () => {
   const [previewHeaders, setPreviewHeaders] = useState<string[]>([]);
   const [selectedCsv, setSelectedCsv] = useState<CsvRecord | null>(null);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [missingVariables, setMissingVariables] = useState<string[]>([]);
+  const [isMissingModalOpen, setIsMissingModalOpen] = useState(false);
 
   const emailSubject = useUserStore((state) => state.emailSubject);
   const emailHtml = useUserStore((state) => state.emailHtml);
@@ -70,7 +73,7 @@ const PreviewCsv = () => {
           if (data.length > 0) {
             setPreviewHeaders(data[0]);
             setPreviewData(
-              data.slice(1).filter((row) => row.some((cell) => cell))
+              data.slice(1).filter((row) => row.some((cell) => cell)),
             );
           }
           setModalLoading(false);
@@ -115,12 +118,12 @@ const PreviewCsv = () => {
 
       if (params.mode === "range" && params.range) {
         message.info(
-          `Sending emails to rows ${params.range.start} to ${params.range.end}.`
+          `Sending emails to rows ${params.range.start} to ${params.range.end}.`,
         );
       } else if (params.mode === "selected" && params.rowIds) {
         if (params.rowIds.length > 1) {
           message.info(
-            `Sending emails to ${params.rowIds.length} selected rows.`
+            `Sending emails to ${params.rowIds.length} selected rows.`,
           );
         }
       } else if (params.mode === "bulk") {
@@ -130,9 +133,25 @@ const PreviewCsv = () => {
       await axios.post("/send-email", payload);
       message.success("Email process started successfully!");
       fetchCsvs();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error sending email:", err);
-      message.error("Failed to send email");
+      const errorResponse = (
+        err as {
+          response?: {
+            data?: {
+              error?: string;
+              missingVariables?: string[];
+              message?: string;
+            };
+          };
+        }
+      ).response?.data;
+      if (errorResponse?.error === "MISSING_VARIABLES") {
+        setMissingVariables(errorResponse.missingVariables || []);
+        setIsMissingModalOpen(true);
+      } else {
+        message.error(errorResponse?.message || "Failed to send email");
+      }
     } finally {
       setSendingEmail(false);
     }
@@ -228,6 +247,12 @@ const PreviewCsv = () => {
         previewHeaders={previewHeaders}
         onSendEmail={handleSendEmail}
         sendingEmail={sendingEmail}
+      />
+
+      <MissingVariablesModal
+        isOpen={isMissingModalOpen}
+        onClose={() => setIsMissingModalOpen(false)}
+        missingVariables={missingVariables}
       />
     </div>
   );

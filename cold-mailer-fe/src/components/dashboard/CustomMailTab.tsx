@@ -1,9 +1,30 @@
-import React from "react";
-import { Typography, Table, Tag, Space, Row, Col, Input, Button } from "antd";
+import React, { useState } from "react";
+import {
+  Typography,
+  Table,
+  Tag,
+  Space,
+  Row,
+  Col,
+  Input,
+  Button,
+  Modal,
+  Form,
+  Tooltip,
+  message,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { EditOutlined, EyeOutlined } from "@ant-design/icons";
+import {
+  EditOutlined,
+  EyeOutlined,
+  FolderOpenOutlined,
+  ThunderboltOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
 import ManualEmailInput from "../ManualEmailInput";
+import SavedTemplatesModal from "../SavedTemplatesModal";
 import { useUserStore, type CustomMail } from "../../store/userStore";
+import { useTemplateStore } from "../../store/templateStore";
 import "./CustomMailTab.scss";
 
 const { Title, Text } = Typography;
@@ -61,11 +82,61 @@ interface CustomMailTabProps {
 }
 
 const CustomMailTab: React.FC<CustomMailTabProps> = ({ setIsPreviewOpen }) => {
+  const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
+  const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+  const [saveForm] = Form.useForm();
+  const [generateForm] = Form.useForm();
+
   const user = useUserStore((state) => state.user);
   const emailSubject = useUserStore((state) => state.emailSubject);
   const emailHtml = useUserStore((state) => state.emailHtml);
   const setEmailSubject = useUserStore((state) => state.setEmailSubject);
   const setEmailHtml = useUserStore((state) => state.setEmailHtml);
+
+  const saveTemplate = useTemplateStore((state) => state.saveTemplate);
+  const generateTemplate = useTemplateStore((state) => state.generateTemplate);
+  const isGenerating = useTemplateStore((state) => state.isGenerating);
+  const isLoading = useTemplateStore((state) => state.isLoading);
+
+  const handleSaveTemplate = async (values: {
+    name: string;
+    isDefault?: boolean;
+  }) => {
+    if (!emailSubject || !emailHtml) {
+      return;
+    }
+
+    const result = await saveTemplate({
+      name: values.name,
+      subject: emailSubject,
+      body: emailHtml,
+      isDefault: values.isDefault,
+    });
+
+    if (result) {
+      setIsSaveTemplateModalOpen(false);
+      saveForm.resetFields();
+    }
+  };
+
+  const handleGenerateTemplate = async (values: {
+    purpose: string;
+    target?: string;
+    tone?: string;
+  }) => {
+    const result = await generateTemplate(values);
+
+    if (result) {
+      setEmailSubject(result.subject);
+      setEmailHtml(result.body);
+      setIsGenerateModalOpen(false);
+      generateForm.resetFields();
+    } else {
+      const error = useTemplateStore.getState().error;
+      message.error(error || "Failed to generate template");
+    }
+  };
 
   return (
     <div className="custom-mail-tab">
@@ -100,12 +171,23 @@ const CustomMailTab: React.FC<CustomMailTabProps> = ({ setIsPreviewOpen }) => {
                 </div>
               </Space>
 
-              <Button
-                shape="circle"
-                icon={<EyeOutlined />}
-                onClick={() => setIsPreviewOpen(true)}
-                disabled={!emailHtml}
-              />
+              <Space size="small">
+                <Tooltip title="View Saved Templates">
+                  <Button
+                    shape="circle"
+                    icon={<FolderOpenOutlined />}
+                    onClick={() => setIsTemplatesModalOpen(true)}
+                  />
+                </Tooltip>
+                <Tooltip title="Preview Email">
+                  <Button
+                    shape="circle"
+                    icon={<EyeOutlined />}
+                    onClick={() => setIsPreviewOpen(true)}
+                    disabled={!emailHtml}
+                  />
+                </Tooltip>
+              </Space>
             </div>
 
             <div className="card-body">
@@ -126,12 +208,32 @@ const CustomMailTab: React.FC<CustomMailTabProps> = ({ setIsPreviewOpen }) => {
                   Message Body
                 </Text>
                 <TextArea
-                  placeholder="Type your personal message here..."
+                  placeholder="Hi {{name}}, I noticed your work at {{company_name}}..."
                   rows={6}
                   value={emailHtml}
                   onChange={(e) => setEmailHtml(e.target.value)}
                   className="modern-textarea"
                 />
+              </div>
+
+              <div
+                className="template-actions"
+                style={{ marginTop: 20, display: "flex", gap: 12 }}
+              >
+                <Button
+                  icon={<ThunderboltOutlined />}
+                  onClick={() => setIsGenerateModalOpen(true)}
+                  loading={isGenerating}
+                >
+                  Generate with AI
+                </Button>
+                <Button
+                  icon={<SaveOutlined />}
+                  onClick={() => setIsSaveTemplateModalOpen(true)}
+                  disabled={!emailSubject || !emailHtml}
+                >
+                  Save as Template
+                </Button>
               </div>
             </div>
           </div>
@@ -155,6 +257,95 @@ const CustomMailTab: React.FC<CustomMailTabProps> = ({ setIsPreviewOpen }) => {
           locale={{ emptyText: "No manual emails sent yet" }}
         />
       </div>
+
+      {/* Saved Templates Modal */}
+      <SavedTemplatesModal
+        isOpen={isTemplatesModalOpen}
+        onClose={() => setIsTemplatesModalOpen(false)}
+      />
+
+      {/* Save Template Modal */}
+      <Modal
+        title="Save as Template"
+        open={isSaveTemplateModalOpen}
+        onCancel={() => {
+          setIsSaveTemplateModalOpen(false);
+          saveForm.resetFields();
+        }}
+        footer={null}
+        width={400}
+        centered
+      >
+        <Form form={saveForm} layout="vertical" onFinish={handleSaveTemplate}>
+          <Form.Item
+            name="name"
+            label="Template Name"
+            rules={[
+              { required: true, message: "Please enter a template name" },
+            ]}
+          >
+            <Input placeholder="e.g., Job Application Template" />
+          </Form.Item>
+          <Form.Item name="isDefault" valuePropName="checked">
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input type="checkbox" />
+              Set as default template
+            </label>
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={isLoading} block>
+              Save Template
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Generate Template Modal */}
+      <Modal
+        title="Generate Email Template with AI"
+        open={isGenerateModalOpen}
+        onCancel={() => {
+          setIsGenerateModalOpen(false);
+          generateForm.resetFields();
+        }}
+        footer={null}
+        width={500}
+        centered
+      >
+        <Form
+          form={generateForm}
+          layout="vertical"
+          onFinish={handleGenerateTemplate}
+        >
+          <Form.Item
+            name="purpose"
+            label="What is the purpose of this email?"
+            rules={[{ required: true, message: "Please describe the purpose" }]}
+          >
+            <Input placeholder="e.g., Reaching out for job opportunities" />
+          </Form.Item>
+          <Form.Item
+            name="target"
+            label="Who is the target audience? (optional)"
+          >
+            <Input placeholder="e.g., Recruiters and hiring managers" />
+          </Form.Item>
+          <Form.Item name="tone" label="Preferred tone (optional)">
+            <Input placeholder="e.g., Professional but friendly" />
+          </Form.Item>
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={isGenerating}
+              block
+              icon={<ThunderboltOutlined />}
+            >
+              Generate Template
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

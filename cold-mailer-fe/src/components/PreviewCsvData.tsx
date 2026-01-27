@@ -12,13 +12,9 @@ import {
   message,
   Tooltip,
   Grid,
+  Tag,
 } from "antd";
-import {
-  MailOutlined,
-  EyeOutlined,
-  SendOutlined,
-  ReloadOutlined,
-} from "@ant-design/icons";
+import { MailOutlined, SendOutlined, ReloadOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { useUserStore } from "../store/userStore";
 import AuthRestrictionModal from "./AuthRestrictionModal";
@@ -93,7 +89,13 @@ const PreviewCsvData = ({
 
     const isSent = isSentPersistent;
     const isFailed = isFailedPersistent;
-    return { isSent, isFailed };
+
+    // Check if opened
+    const isOpened = !!user?.openedEmails?.find(
+      (oe) => oe.csvId === selectedCsv?._id && String(oe.rowId) === String(key),
+    );
+
+    return { isSent, isFailed, isOpened };
   };
 
   // Transform data rows into objects for the table
@@ -207,6 +209,40 @@ const PreviewCsvData = ({
         };
       }),
     {
+      title: "Status",
+      key: "status",
+      width: 100,
+      render: (_, record: Record<string, string>) => {
+        const { isSent, isOpened } = getRowStatus(record);
+
+        if (isOpened) {
+          return (
+            <Tag
+              color="success"
+              style={{ borderRadius: "100px", padding: "0 12px" }}
+            >
+              Opened
+            </Tag>
+          );
+        }
+
+        if (isSent) {
+          return (
+            <Tag
+              color="processing"
+              style={{ borderRadius: "100px", padding: "0 12px" }}
+            >
+              Sent
+            </Tag>
+          );
+        }
+
+        return (
+          <Tag style={{ borderRadius: "100px", padding: "0 12px" }}>Draft</Tag>
+        );
+      },
+    },
+    {
       title: "Actions",
       key: "actions",
       fixed: "right",
@@ -253,27 +289,6 @@ const PreviewCsvData = ({
                 />
               </Tooltip>
             )}
-            {(() => {
-              const user = useUserStore.getState().user;
-              const opened = user?.openedEmails?.find(
-                (oe) =>
-                  oe.csvId === selectedCsv?._id &&
-                  String(oe.rowId) === String(record.key)
-              );
-
-              if (opened) {
-                return (
-                  <Tooltip
-                    title={`Opened at: ${new Date(
-                      opened.openedAt
-                    ).toLocaleString()}`}
-                  >
-                    <EyeOutlined className="status-eye-icon" />
-                  </Tooltip>
-                );
-              }
-              return null;
-            })()}
           </Space>
         );
       },
