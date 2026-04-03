@@ -12,8 +12,10 @@ import { Outlet, useNavigate, useLocation, Link } from "react-router";
 import {
   UserOutlined,
   LogoutOutlined,
-  SettingOutlined,
   MenuOutlined,
+  SearchOutlined,
+  BarChartOutlined,
+  DashboardOutlined,
 } from "@ant-design/icons";
 import { useUserStore } from "../../store/userStore";
 import { setTokenToLS } from "../../HelperMethods";
@@ -62,8 +64,9 @@ const AppLayout: React.FC = () => {
   ];
 
   const navItems = [
-    { label: "Dashboard", path: "/dashboard" },
-    { label: "Analytics", path: "/analytics" },
+    { label: "Dashboard", path: "/dashboard", icon: <DashboardOutlined /> },
+    { label: "Job Search", path: "/job-search", icon: <SearchOutlined /> },
+    { label: "Analytics", path: "/analytics", icon: <BarChartOutlined /> },
   ];
 
   return (
