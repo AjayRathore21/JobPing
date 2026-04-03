@@ -4,6 +4,7 @@ import { Route, Routes, Navigate } from "react-router";
 import SignupPage from "./components/SignupPage";
 import DashboardPage from "./components/DashboardPage";
 import AnalyticsPage from "./pages/analytics/AnalyticsPage";
+import JobSearchPage from "./pages/job-search/JobSearchPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import OAuthCallback from "./components/OAuthCallback";
 import AppLayout from "./components/layout/AppLayout";
@@ -40,8 +41,9 @@ function App() {
     <Routes>
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/job-search" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/job-search" element={<JobSearchPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
         </Route>
       </Route>
